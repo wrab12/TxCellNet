@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "txcellnet"
+version = "1.0.0"
+description = "TxCellNet: transferable generation of multiplexed protein images from spatial transcriptomics"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "wrab12" }]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pandas>=2.0",
+    "h5py>=3.9",
+    "opencv-python>=4.8",
+    "torch>=2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/wrab12/TxCellNet"
+
+[tool.setuptools]
+packages = ["txcellnet"]

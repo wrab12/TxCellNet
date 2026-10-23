@@ -1,0 +1,43 @@
+# data, results, external code (see data/README.md and README.md); data/README.md is kept
+/data/*
+!/data/README.md
+/results/
+/external/
+/FIGDATA/
+/figures_out/
+/table_*.tex
+
+# weights and large arrays
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.npy
+*.npz
+*.h5
+*.h5ad
+*.parquet
+*.zarr/
+*.tif
+*.tiff
+*.mcd
+*.pickle
+*.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+
+# OS / editors / local agent and environment config
+.DS_Store
+.vscode/
+.idea/
+qa/
+.claude/
+CLAUDE.md
+.env
+*.log
