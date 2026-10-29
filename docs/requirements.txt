@@ -1,0 +1,7 @@
+# Documentation build (Read the Docs and local). The tutorials are notebooks stored with their outputs and rendered without
+# execution, and the API page mocks torch and the other heavy imports, so PyTorch and the package dependencies are not needed.
+sphinx==9.0.4
+sphinx-rtd-theme==3.1.0
+myst-parser==5.1.0
+myst-nb==1.4.0
+docutils==0.22.4

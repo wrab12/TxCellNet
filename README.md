@@ -1,12 +1,14 @@
 # TxCellNet: transferable generation of multiplexed protein images from spatial transcriptomics
 
+**Documentation:** [txcellnet.readthedocs.io](https://txcellnet.readthedocs.io)
+
 ## Introduction
 TxCellNet generates multiplexed protein images from imaging-based spatial transcriptomics. It reads what every
 imaging-based section provides: the position and gene of each transcript molecule, the DAPI image and the cell
 segmentation. Each molecule is replaced by a learnable embedding of its gene, and the embeddings are summed at the
 molecule's pixel. A gene that a panel does not measure contributes nothing to this gene field, so one model reads any gene
 panel (the panel genes in its training vocabulary). A U-Net reads the gene field together with DAPI, and a
-cell-neighbourhood transformer pools the U-Net features and the gene field of each cell into a token and lets every cell
+cell-neighborhood transformer pools the U-Net features and the gene field of each cell into a token and lets every cell
 attend to the other cells of the window, with a Gaussian distance bias whose length scale each attention head learns.
 Stage 1 predicts the conditional-mean protein image; its mean over the pixels of a cell is that cell's protein prediction.
 To transfer to other tissues, gene panels, detection depths and imaging conditions, TxCellNet averages networks trained on
@@ -29,7 +31,7 @@ which per-cell predictions cannot represent.
 ```
 TxCellNet/
 ├── txcellnet/                  # Python package (pip install -e .)
-│   ├── model.py                # stage 1: gene-embedding splatting, U-Net, cell-neighbourhood transformer (GenNet)
+│   ├── model.py                # stage 1: gene-embedding splatting, U-Net, cell-neighborhood transformer (GenNet)
 │   ├── flow.py                 # stage 2: flow U-Net, cell geometry channels, sampling with the cell-mean projection
 │   ├── predict.py              # whole-section inference (windows with context margins, four flips, per-cell sums)
 │   ├── metrics.py              # Spearman, Pearson, AUROC of Otsu-positive cells
@@ -46,6 +48,7 @@ TxCellNet/
 │   ├── tables/                 # LaTeX tables of the supplementary material
 │   └── figdata/                # image windows and tables read by the figure scripts
 ├── figures/                    # figure scripts (Figs 2-5, Supplementary Figs S1-S6, Table S13) and make_all.sh
+├── docs/                       # documentation (Sphinx, Read the Docs) and the tutorial notebooks (docs/source/tutorials)
 ├── data/README.md              # data sources and expected layout (no data in the repository)
 ├── envs/                       # extra requirements of the PyG (DGAT, SpaMosaic) and scvi (totalVI) environments
 ├── smoke_test.py               # end-to-end test on synthetic data
@@ -110,7 +113,7 @@ git clone https://github.com/JinmiaoChenLab/SpaMosaic external/SpaMosaic && git 
 
 ## Testing
 Run the smoke test from the repository root. On small synthetic sections it checks the molecule splatting, a few training
-steps of stage 1 (gene embeddings and cell-neighbourhood transformer), whole-section inference with genes outside the
+steps of stage 1 (gene embeddings and cell-neighborhood transformer), whole-section inference with genes outside the
 vocabulary and with a partial panel, stage-2 sampling, and that every cell mean of the refined image equals the stage-1
 cell mean. It takes well under a minute on a laptop CPU.
 ```bash
@@ -259,7 +262,7 @@ for sec in rcc ccrcc; do
 done
 python scripts/benchmark/run_bench_gen.py results/bench/cross_kidney x_rcc_only,x_ccrcc_only data/cases/kidney_rcc data/cases/kidney_ccrcc
 
-# 6. spot-level evaluation (Supplementary S9): hexagonal pseudo-spots, PITCH=55 um between neighbouring centres
+# 6. spot-level evaluation (Supplementary S9): hexagonal pseudo-spots, PITCH=55 um between neighboring centers
 python scripts/baselines/grid_eval.py within $EXT                            # PyG env
 python scripts/baselines/grid_eval.py cross ${PANEL_GROUPS// /,}             # PyG env; group 'full' = kidney held-out stripes
 python scripts/evaluation/grid_summary.py results/bench/grid                 # tables, wins, Wilcoxon tests, table_grid_*.tex
@@ -299,7 +302,7 @@ done
 python scripts/evaluation/sim_loc.py results/sim/loc    # share of each synthetic protein in its intended compartment
 python scripts/figdata/sim_loc_crops.py                 # held-out window of Fig. 4a (all four compartments expressed)
 
-# 9. case study: tumour-immune architecture of the five CRLM tumour sections (models trained on kidney; the same rule for
+# 9. case study: tumor-immune architecture of the five CRLM tumor sections (models trained on kidney; the same rule for
 #    measured IMC, TxCellNet, NicheTrans, DGAT and the cognate mRNA)
 python scripts/evaluation/crlm_case.py results/case_crlm/final       # summary.csv, profiles.csv, thresholds.csv, map_<section>.npz
 THRESHOLDS=dataset python scripts/evaluation/crlm_case.py results/case_crlm/dataset   # check: one threshold per dataset (Supplementary S11)
@@ -355,7 +358,7 @@ python scripts/tables/case_table.py results/case_crlm/final/summary.csv results/
 | Fig. 2 (three settings on identical test cells; per protein on kidney and CRLM; cross-dataset group means) | `scripts/tables/bench_tables.py`, `scripts/evaluation/xsec_summary.py`, `scripts/figdata/per_protein_rows.py`, `figures/perprotein.py`, `figures/fig2_bench.py` |
 | Fig. 3 (images; within-cell patterns; stage-2 realism with matched-noise control) | `scripts/figdata/crops_kidney.py`, `allmethods_extract.py`, `scripts/evaluation/image_metrics.py`, `stage2_realism.py`, `stage2_kid_cellpose.py`, `stage2_realism_summary.py`, `figures/fig3_images.py` |
 | Fig. 4 (semi-synthetic benchmark by compartment) | `scripts/evaluation/sim_eval.py`, `scripts/baselines/sim_sota.py`, `scripts/evaluation/sim_loc.py`, `scripts/figdata/sim_loc_crops.py`, `figures/fig4_sim.py` |
-| Fig. 5 (case study: tumour-immune architecture of liver metastases) | `scripts/evaluation/crlm_case.py`, `figures/fig5_case.py` |
+| Fig. 5 (case study: tumor-immune architecture of liver metastases) | `scripts/evaluation/crlm_case.py`, `figures/fig5_case.py` |
 | Fig. S1 (ablations, stage 2) | `scripts/evaluation/summarize_final.py`, `scripts/train/train_refine.py`, `figures/figS1_ablation.py` |
 | Stage-2 realism panel (stage 2 vs stage 1 vs measured, matched-noise control; `figS1b_stage2_realism`) | `scripts/evaluation/stage2_realism.py`, `stage2_kid_cellpose.py`, `stage2_realism_summary.py`, `figures/figS1b_stage2_realism.py` |
 | Fig. S2 (which proteins transfer; kidney cross-patient column: `x_rcc_only`, `x_ccrcc_only`) | `scripts/figdata/protein_table.py`, `figures/figS2_proteins.py` |
