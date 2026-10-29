@@ -13,6 +13,8 @@ h5py>=3.9
 matplotlib>=3.7
 scanpy>=1.9
 anndata>=0.9
+# imported by the official NicheTrans model (with torchvision, installed together with PyTorch; see README.md)
+einops>=0.8
 # IMC .mcd files (scripts/data/extract_imc.py)
 readimc>=0.7
 # segmentation of the Visium HD sections (scripts/data/prep_case_visiumhd.py uses the models.Cellpose API of cellpose < 4)

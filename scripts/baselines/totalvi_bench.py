@@ -8,6 +8,8 @@ sample_protein_mixing=False, n_samples=25, posterior mean). The query RNA is use
 Genes: the tutorial's sc.pp.highly_variable_genes(adata, batch_key='batch', flavor='seurat_v3', n_top_genes=4000,
 subset=True) on the concatenated training data, panels with <= 4,000 genes keep all genes (cross: the panel-matched genes).
 max_epochs: scvi's default min(round(20000 / n * 400), 400) (with its early stopping), or MAX_EPOCHS.
+Training runs on the CPU, as for the paper (GPUs hidden with CUDA_VISIBLE_DEVICES=, OMP_NUM_THREADS=8; 16 for the
+other-section pairs); env TVI_ACCELERATOR (default cpu) is passed to scvi's train(accelerator=...).
 Protein inputs must be counts: kidney 10x protein values are integers; other datasets' per-cell intensities (within mode)
 are scaled per channel so that the 99th percentile of the training cells is 500 and rounded.
 Training cells are subsampled to <= N_REF reference cells per sample (cross: 2 kidney sections) and <= N_QUERY query
@@ -30,6 +32,7 @@ from txcellnet.bench import (load_kidney, group_genes, group_cases, load_case_ce
 
 SEED = int(os.environ.get('SEED', 1)); scvi.settings.seed = SEED
 N_REF, N_QUERY = int(os.environ.get('N_REF', 100_000)), int(os.environ.get('N_QUERY', 100_000))
+ACCEL = os.environ.get('TVI_ACCELERATOR', 'cpu')  # the paper trained totalVI on the CPU
 torch.set_float32_matmul_precision('high'); logging.getLogger('lightning').setLevel(logging.WARNING)
 
 
@@ -57,7 +60,7 @@ def fit_predict(refs, qname, Xq_train, Xq_pred, genes, names):
     scvi.model.TOTALVI.setup_anndata(A, batch_key='batch', protein_expression_obsm_key='protein_expression')
     model = scvi.model.TOTALVI(A, latent_distribution='normal', n_layers_decoder=2)
     ep = int(os.environ.get('MAX_EPOCHS', 0)) or min(round(20000 / A.n_obs * 400), 400); t0 = time.time()
-    model.train(max_epochs=ep, enable_progress_bar=False)
+    model.train(max_epochs=ep, accelerator=ACCEL, enable_progress_bar=False)
     hist = model.history; last = {k: float(v.iloc[-1, 0]) for k, v in hist.items() if k in ('elbo_train', 'elbo_validation')}
     log('totalVI trained', A.n_obs, 'cells', A.n_vars, 'genes', ep, 'max epochs', len(hist['elbo_train']), 'run', last, f'{time.time() - t0:.0f}s')
     B = ad.AnnData(Xq_pred.tocsr()[:, gi].astype(np.float32), obs=pd.DataFrame({'batch': pd.Categorical([qname] * Xq_pred.shape[0], categories=cats)},

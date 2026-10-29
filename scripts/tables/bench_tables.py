@@ -20,10 +20,10 @@ MODE, OUT = sys.argv[1], sys.argv[2]; os.makedirs(OUT, exist_ok=True)
 # key, label; published methods first, then baselines
 METHODS = [('txcellnet', 'TxCellNet'), ('nichetrans', 'NicheTrans'), ('dgat', 'DGAT'), ('spamosaic', 'SpaMosaic'), ('totalvi', 'totalVI'),
            ('mlp', 'MLP'), ('ridge', 'Ridge'), ('knn', 'kNN mapping'), ('celltype', 'Cell-type lookup'), ('own_mRNA', 'Cognate mRNA')]
-SHORT = {'kidney_rcc': 'RCC', 'kidney_ccrcc': 'ccRCC', 'duchini_core01_hcc': 'hepatocellular carcinoma', 'duchini_core02_non_tumour': 'liver (non-tumour)',
-         'duchini_core03_tonsil': 'tonsil', 'duchini_core04_hca': 'hepatocellular adenoma', 'crlm_tumor1': 'tumour 1', 'crlm_tumor2': 'tumour 2',
-         'crlm_adjnormal': 'adjacent normal liver', 'crlm_tumor3_A1': 'tumour 3, ROI A1', 'crlm_tumor3_A2': 'tumour 3, ROI A2',
-         'crlm_tumor3_A3': 'tumour 3, ROI A3', 'xen_lung_v1': 'lung cancer', 'xen_pancreas_v1': 'pancreas', 'xen_lymphnode_5k': 'reactive lymph node, 5K',
+SHORT = {'kidney_rcc': 'RCC', 'kidney_ccrcc': 'ccRCC', 'duchini_core01_hcc': 'hepatocellular carcinoma', 'duchini_core02_non_tumour': 'normal liver',
+         'duchini_core03_tonsil': 'tonsil', 'duchini_core04_hca': 'hepatocellular adenoma', 'crlm_tumor1': 'tumor 1', 'crlm_tumor2': 'tumor 2',
+         'crlm_adjnormal': 'adjacent normal liver', 'crlm_tumor3_A1': 'tumor 3, ROI A1', 'crlm_tumor3_A2': 'tumor 3, ROI A2',
+         'crlm_tumor3_A3': 'tumor 3, ROI A3', 'xen_lung_v1': 'lung cancer', 'xen_pancreas_v1': 'pancreas', 'xen_lymphnode_5k': 'reactive lymph node, 5K',
          'xen_skin_5k': 'melanoma, 5K', 'xen_prostate_5k': 'prostate cancer, 5K', 'xen_ovary_5k': 'ovarian cancer, 5K',
          'xen_ovary_v1ff': 'ovarian cancer, fresh frozen', 'xen_breast_5k': 'breast cancer, 5K', 'xen_cervix_5k': 'cervical cancer, 5K',
          'xen_gbm_v1': 'glioblastoma, IO panel'}
@@ -39,9 +39,9 @@ if MODE == 'within':
                                                                                 'crlm_tumor3_A2', 'crlm_tumor3_A3']),
               ('Liver and tonsil cores, COMET (7 proteins)', 'Liver,\ntonsil\n(COMET)', ['duchini_core01_hcc', 'duchini_core02_non_tumour', 'duchini_core03_tonsil',
                                                                                       'duchini_core04_hca']),
-              ('Breast cancer, 280-gene panel (12 sections)', 'Breast\n(stains)', BREAST((1, 2, 3, 4))),
-              ('Lung cancer; pancreas (Xenium v1)', 'Lung,\npancreas', ['xen_lung_v1', 'xen_pancreas_v1']),
-              ('Single-section datasets (5K and other panels)', '5K,\nother', ['xen_lymphnode_5k', 'xen_skin_5k', 'xen_prostate_5k', 'xen_ovary_5k', 'xen_ovary_v1ff',
+              ('Breast cancer, Xenium 280-gene panel', 'Breast\n(stains)', BREAST((1, 2, 3, 4))),
+              ('Lung cancer and pancreas, Xenium v1', 'Lung,\npancreas', ['xen_lung_v1', 'xen_pancreas_v1']),
+              ('Xenium 5K and other panels', '5K,\nother', ['xen_lymphnode_5k', 'xen_skin_5k', 'xen_prostate_5k', 'xen_ovary_5k', 'xen_ovary_v1ff',
                                                                  'xen_breast_5k', 'xen_cervix_5k', 'xen_gbm_v1'])]
 else:
     GROUPS = [('Breast cancer, 280-gene panel (73 shared genes)', 'Breast', BREAST((2, 3, 4))),
@@ -124,21 +124,24 @@ else:
     S['kidney'] = T.reindex(['kidney_rcc', 'kidney_ccrcc']).round(4).to_dict()
 json.dump(S, open(f'{OUT}/fig_{MODE}_stats.json', 'w'), indent=1)
 
-COLS = [('txcellnet', 'TxCellNet'), ('nichetrans', 'NT$\\times$3' if MODE == 'cross' else 'NT'), ('dgat', 'DGAT'), ('spamosaic', 'SpaM.'),
-        ('totalvi', 'totalVI'), ('mlp', 'MLP$\\times$3' if MODE == 'cross' else 'MLP'), ('ridge', 'Ridge'), ('knn', 'kNN'), ('celltype', 'Type'),
-        ('own_mRNA', 'mRNA')]
+COLS = [('txcellnet', 'TxCellNet'), ('nichetrans', 'NT'), ('dgat', 'DGAT'), ('spamosaic', 'SpaM.'), ('totalvi', 'totalVI'), ('mlp', 'MLP'),
+        ('ridge', 'Ridge'), ('knn', 'kNN'), ('celltype', 'Type'), ('own_mRNA', 'mRNA')]
+E3 = {'nichetrans', 'mlp'} if MODE == 'cross' else set()  # three-seed ensembles (second header row)
 if MODE == 'cross':
     SPL = [('Kidney, held-out stripes', ['kidney_rcc', 'kidney_ccrcc']),
-           ('Development', BREAST((1,)) + ['xen_lung_v1', 'xen_pancreas_v1', 'crlm_tumor1', 'crlm_tumor3_A1', 'duchini_core01_hcc']),
-           ('Test', TEST), ('Fresh', FRESH)]
+           ('Development sections', BREAST((1,)) + ['xen_lung_v1', 'xen_pancreas_v1', 'crlm_tumor1', 'crlm_tumor3_A1', 'duchini_core01_hcc']),
+           ('Test sections', TEST), ('Fresh datasets', FRESH)]
 else:
     SPL = [(g, cs) for g, _, cs in GROUPS]
 def NAME(c):
-    if c.startswith('kidney'): return {'kidney_rcc': 'kidney RCC', 'kidney_ccrcc': 'kidney ccRCC'}[c]
-    if c.startswith('xen_breast_S'): return 'breast ' + SHORT[c].replace('sample ', 'S')
+    if c.startswith('kidney'): return {'kidney_rcc': 'Kidney RCC', 'kidney_ccrcc': 'Kidney ccRCC'}[c]
+    if c.startswith('xen_breast_S'): return 'Breast ' + SHORT[c].replace('sample ', 'S')
     if c.startswith('crlm'): return 'CRLM ' + SHORT[c]
-    return SHORT.get(c, c)
-lines = ['\\begin{tabular}{@{}l' + 'r' * len(COLS) + '@{}}', '\\toprule', 'Dataset & ' + ' & '.join(n for _, n in COLS) + '\\\\', '\\midrule']
+    n = SHORT.get(c, c); return n[:1].upper() + n[1:]
+num = lambda v, d: f'{v:.{d}f}'.replace('-', '$-$')
+lines = ['\\begin{tabular}{@{}l' + 'r' * len(COLS) + '@{}}', '\\toprule', 'Section & ' + ' & '.join(n for _, n in COLS) + '\\\\']
+if E3: lines.append(' ' + ' '.join(('& ' + ('$\\times$3' if k in E3 else '')).strip() for k, _ in COLS) + ' \\\\')
+lines.append('\\midrule')
 for title, cs in SPL:
     TT = build(MODE, cs)
     lines.append(f'\\multicolumn{{{len(COLS) + 1}}}{{@{{}}l}}{{\\textit{{{title}}}}}\\\\')
@@ -146,8 +149,8 @@ for title, cs in SPL:
         vals = [TT.loc[c, k] for k, _ in COLS]; fin = [v for v in vals if v == v]
         if not fin: continue
         b = max(fin)
-        lines.append(NAME(c) + ' & ' + ' & '.join('--' if v != v else (f'\\textbf{{{v:.2f}}}' if v == b else f'{v:.2f}') for v in vals) + '\\\\')
-    lines.append('\\textit{mean} & ' + ' & '.join('--' if TT[k].isna().all() else f'{TT[k].mean():.3f}' for k, _ in COLS) + '\\\\')
+        lines.append(NAME(c) + ' & ' + ' & '.join('--' if v != v else (f'\\textbf{{{num(v, 2)}}}' if v == b else num(v, 2)) for v in vals) + '\\\\')
+    lines.append('\\textit{Mean} & ' + ' & '.join('--' if TT[k].isna().all() else num(TT[k].mean(), 3) for k, _ in COLS) + '\\\\')
     lines.append('\\midrule')
 lines[-1] = '\\bottomrule'; lines.append('\\end{tabular}')
 open(f'{OUT}/table_{MODE}.tex', 'w').write('\n'.join(lines) + '\n')

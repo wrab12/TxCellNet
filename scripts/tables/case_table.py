@@ -5,15 +5,16 @@ import sys
 import numpy as np, pandas as pd
 
 S = pd.read_csv(sys.argv[1]); st = pd.read_csv(sys.argv[2]).set_index('case'); out = sys.argv[3]
-SECTIONS = [('crlm_tumor1', 'Tumour 1'), ('crlm_tumor2', 'Tumour 2'), ('crlm_tumor3_A1', 'Tumour 3, A1'), ('crlm_tumor3_A2', 'Tumour 3, A2'),
-            ('crlm_tumor3_A3', 'Tumour 3, A3')]
+SECTIONS = [('crlm_tumor1', 'Tumor 1'), ('crlm_tumor2', 'Tumor 2'), ('crlm_tumor3_A1', 'Tumor 3, A1'), ('crlm_tumor3_A2', 'Tumor 3, A2'),
+            ('crlm_tumor3_A3', 'Tumor 3, A3')]
 SRC = ['TxCellNet', 'DGAT', 'NicheTrans', 'Cognate mRNA']
-MET = [('dice_tumour', 'Tumour region (Dice)'), ('r_immune', 'CD45$^+$ profile ($r$)'), ('r_macrophage', 'CD68$^+$ profile ($r$)')]
+MET = [('dice_tumour', 'Tumor region (Dice)'), ('r_immune', 'CD45$^+$ profile ($r$)'), ('r_macrophage', 'CD68$^+$ profile ($r$)')]
 fmt = lambda v: f'{v:.2f}'.replace('-', '$-$')
-L = [r'\begin{tabular}{@{}lr' + 'rrrr' * len(MET) + r'c@{}}', r'\toprule',
-     r' & & ' + ' & '.join(rf'\multicolumn{{4}}{{c}}{{{t}}}' for _, t in MET) + r' & IMC immune \\',
+L = [r'\small\setlength{\tabcolsep}{1.3pt}% narrow column gaps keep the English labels within the text width',
+     r'\begin{tabular}{@{}lr' + r'@{\hspace{5pt}}rrrr' * len(MET) + r'@{\hspace{5pt}}c@{}}', r'\toprule',
+     r' & & ' + ' & '.join(rf'\multicolumn{{4}}{{c}}{{{t}}}' for _, t in MET) + r' & \begin{tabular}[b]{@{}c@{}}IMC\\immune cells\end{tabular} \\',
      ''.join(rf'\cmidrule(lr){{{3 + 4 * i}-{6 + 4 * i}}}' for i in range(len(MET))),
-     r'Section & Molec. & ' + ' & '.join(['TxC & DGAT & NT & mRNA'] * len(MET)) + r' & in / out \\', r'\midrule']
+     r'Section & Molec. & ' + ' & '.join(['TxC & DG & NT & mRNA'] * len(MET)) + r' & in / out \\', r'\midrule']
 for c, name in SECTIONS:
     d = S[S.case == c].set_index('source'); cells = []
     for m, _ in MET:

@@ -7,12 +7,14 @@ Writes into data/cases/<case>/:
   split.json   {"x_edges_px": [...], "test": "odd stripes (0-based) of 8 equal-width x-stripes over the evaluated cells"}
 Sources: Xenium multimodal stains (morphology_focus channels 1 = boundary, 3 = interior; level 2 = the case grid),
 IMC ROIs warped with the stored affine (CRLM), COMET channels warped with the authors' matrix (Duchini).
-Xenium bundles: data/ext/<case>, or data/pre/<bundle> for the seven sections added after the configuration freeze (FRESH).
+Xenium bundles: data/ext/<case>, or data/pre/<bundle> for the seven sections added after the configuration freeze (FRESH);
+the FRESH targets are z-scored over the tissue mask of that bundle's preparation (smoothed DAPI above the 20th percentile
+of the nonzero raw DAPI), the others over the case tissue mask (prep_case_xenium.py); ymask.npy is the case tissue mask.
 usage: prep_targets.py CASE [CASE ...]
 """
 import glob, json, sys, time, xml.etree.ElementTree as ET
 import numpy as np, pandas as pd, tifffile, cv2
-from scipy.ndimage import map_coordinates, gaussian_filter
+from scipy.ndimage import map_coordinates, gaussian_filter, binary_closing, binary_fill_holes
 
 FRESH = {'xen_breast_5k': 'pre_breast_5k', 'xen_cervix_5k': 'pre_cervix_5k', 'xen_ovary_5k': 'pre_ovary_5k', 'xen_prostate_5k': 'pre_prostate_5k',
          'xen_skin_5k': 'pre_skin_5k', 'xen_gbm_v1': 'pre_gbm_v1', 'xen_ovary_v1ff': 'pre_ovary_v1_ff'}
@@ -45,7 +47,11 @@ for case in sys.argv[1:]:
         src = f'data/pre/{FRESH[case]}' if case in FRESH else f'data/ext/{case}'  # the case's Xenium bundle
         fs = lambda i: sorted(glob.glob(f'{src}/morphology_focus/*{i:04d}*.ome.tif'))[0]
         bnd, itr = read_level(fs(1)).astype(np.float32), read_level(fs(3)).astype(np.float32)
-        Y = np.stack([zlog(bnd, mask), zlog(itr, mask)])
+        zmask = mask
+        if case in FRESH:  # z-scored over the bundle-preparation tissue mask (threshold: 20th pct of nonzero raw DAPI)
+            dapi = read_level(fs(0)).astype(np.float32)
+            zmask = binary_fill_holes(binary_closing(gaussian_filter(dapi, 4) > np.percentile(dapi[dapi > 0], 20), iterations=5)); del dapi
+        Y = np.stack([zlog(bnd, zmask), zlog(itr, zmask)])
         assert Y.shape[1:] == (H, W), (case, Y.shape, (H, W))
         mk = {k: ('interior' if k.startswith('interior') else 'boundary') for k in meta['markers']}
     elif case.startswith('crlm_'):

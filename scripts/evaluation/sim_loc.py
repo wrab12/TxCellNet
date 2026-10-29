@@ -7,10 +7,10 @@ Every synthetic channel has one intended compartment (the rule of sim_make.py):
 The ground truth is the noiseless blurred image (Yclean); a blurred ring or nucleus also leaks a little signal into the
 rest of the cell, so the truth itself does not reach 100 %.
 
-Methods, unperturbed inputs, held-out stripes of both kidney sections, exactly as sim_eval_ens.py / sim_sota.py:
+Methods, unperturbed inputs, held-out stripes of both kidney sections, exactly as sim_eval.py / sim_sota.py:
   TxCellNet networks sim_plain (clean), sim_aug (randomized), sim_mix; TxCellNet = ens_cr = mean of clean + randomized
   per-cell methods (NicheTrans official, DGAT, SpaMosaic, totalVI: results/sim/sota/pred_*_none.npz; ridge and
-  ridge + neighbourhood refitted as in sim_eval_ens.py), painted uniformly into their cells
+  ridge + neighbourhood refitted as in sim_eval.py), painted uniformly into their cells
 Prediction images of TxCellNet are put back on the log(1 + intensity) scale of the targets with the per-section
 train-pixel mean and s.d. of the noisy image (train_gen.py normalisation).
 
@@ -91,7 +91,7 @@ for s in SECT:
     log(s, 'grid', H, W, 'ymu', np.round(ymu, 3), 'ysd', np.round(ysd, 3), 'background', np.round(bg, 4))
 
 
-# ---------------- TxCellNet predictions (inference code of sim_eval_ens.py) ----------------
+# ---------------- TxCellNet predictions (inference code of sim_eval.py) ----------------
 def predict(tag, s):
     f = f'{OUT}/pred_{tag}_{s}.npy'
     if os.path.exists(f): return np.load(f)
@@ -127,7 +127,7 @@ def predict(tag, s):
     return pred
 
 
-# ---------------- per-cell baselines: ridge, ridge + neighbourhood (sim_eval_ens.py) ----------------
+# ---------------- per-cell baselines: ridge, ridge + neighbourhood (sim_eval.py) ----------------
 def cell_feats(s):
     d = D[s]; L = d['lab'][d['gy'], d['gx']]; n = int(d['lab'].max()) + 1; ng = len(d['meta']['genes'])
     Xc = sp.csr_matrix((np.ones(len(L), np.float32), (L, d['gid'])), shape=(n, ng))

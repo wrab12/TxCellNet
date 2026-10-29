@@ -7,19 +7,21 @@ import sys
 import numpy as np, pandas as pd
 
 G = pd.read_csv(sys.argv[1]); X = G[G.tier == 'cross-section']
-COLS = [('breast, same patient', 'Br.\\ same pt.'), ('breast, other patient', 'Br.\\ other pt.'), ('CRLM tumour 3, other ROI', 'CRLM T3 ROI'),
-        ('CRLM, other section', 'CRLM other'), ('COMET, other liver core', 'COMET liver'), ('COMET, liver <-> tonsil', 'COMET liv.--ton.'),
-        ('kidney, other patient', 'Kidney')]
-ROWS = [('txcellnet_cr', 'TxCellNet (clean + randomized)'), ('txcellnet', '\\quad clean network only'), ('txcellnet_rand', '\\quad randomized network only'),
+STACK = lambda *ls: '\\begin{tabular}[b]{@{}c@{}}' + '\\\\'.join(ls) + '\\end{tabular}'  # multi-line column head
+COLS = [('breast, same patient', STACK('Breast', 'same pt.')), ('breast, other patient', STACK('Breast', 'other pt.')),
+        ('CRLM tumour 3, other ROI', STACK('CRLM', 'tumor 3', 'other ROI')), ('CRLM, other section', STACK('CRLM', 'other', 'section')),
+        ('COMET, other liver core', STACK('COMET', 'liver', 'between', 'cores')), ('COMET, liver <-> tonsil', STACK('COMET', 'liver--tonsil')),
+        ('kidney, other patient', STACK('Kidney', 'other pt.'))]
+ROWS = [('txcellnet_cr', 'TxCellNet (clean + randomized)'), ('txcellnet', '\\quad Clean network only'), ('txcellnet_rand', '\\quad Randomized network only'),
         ('nichetrans_off', 'NicheTrans'), ('dgat', 'DGAT'), ('spamosaic', 'SpaMosaic'), ('totalvi', 'totalVI'), ('mlp', 'MLP'), ('ridge', 'Ridge'),
-        ('knn', 'Reference mapping'), ('celltype', 'Cell-type lookup'), ('own_mRNA', 'Cognate mRNA')]
+        ('knn', 'kNN reference mapping'), ('celltype', 'Cell-type lookup'), ('own_mRNA', 'Cognate mRNA')]
 V = {(g, m): X[(X.group == g) & (X.method == m)].spearman for g, _ in COLS for m, _ in ROWS}
 V = {k: (v.mean() if len(v) else np.nan) for k, v in V.items()}
 best = {g: np.nanmax([V[(g, m)] for m, _ in ROWS if m not in ('txcellnet', 'txcellnet_rand')]) for g, _ in COLS}
 npairs = {g: int(X[X.group == g].n.max()) if len(X[X.group == g]) else 0 for g, _ in COLS}
 lines = ['\\begin{tabular}{@{}l' + 'r' * len(COLS) + '@{}}', '\\toprule',
          'Method & ' + ' & '.join(h for _, h in COLS) + '\\\\',
-         'pairs & ' + ' & '.join(str(npairs[g]) for g, _ in COLS) + '\\\\', '\\midrule']
+         'Pairs & ' + ' & '.join(str(npairs[g]) for g, _ in COLS) + '\\\\', '\\midrule']
 for m, name in ROWS:
     cells = []
     for g, _ in COLS:

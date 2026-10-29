@@ -6,7 +6,9 @@ Config (env): THIN=0|1    molecule thinning per patch (keep probability ~ LogUni
               DAUG=0|1    DAPI appearance perturbation (gain/offset, blur, noise)
               PAUG=p      each patch is randomized (thinning + gene dropout w.p. .5 + DAPI perturbation) with prob p,
                           otherwise left clean: PAUG=0 clean network, PAUG=1 randomized network, PAUG=0.5 mixed network
-                          (with THIN=1 GDROP=0.5 DAUG=1); unset = the switches above act independently
+                          (with THIN=1 GDROP=0.5 DAUG=1); unset = the switches above act independently on every patch:
+                          thinning with prob .75 (all molecules kept otherwise), gene dropout with prob .5, DAPI
+                          perturbation always (the randomized network sim_aug of the semi-synthetic benchmark)
               PANEL=name  panel matching: train reading only the genes of panel group `name` (results/bench/panels.json)
               SECTIONS=rcc|ccrcc  train on one section only (cross-patient analysis; both are still evaluated)
               ablations: NODAPI=1 (DAPI zeroed), NONICHE=1 (no cell-niche transformer),

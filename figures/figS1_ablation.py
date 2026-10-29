@@ -1,5 +1,7 @@
-"""Supplementary figure S1 (v5.2, RECOMB 10 pt floor): what each component contributes, and what stage 2 adds. Same numbers as
-TxCellNet_code/scripts/figS2_ablation.py and as the 5-7 pt version.
+"""Supplementary Fig. S1: what each component contributes, and what stage 2 adds.
+Inputs: PER_DATASET_CSV = ablation_all_per_dataset.csv of scripts/evaluation/summarize_final.py; REFINE_METRICS_CSV = the
+metrics.csv of scripts/train/train_refine.py (run refine_fin, RCC section); CROPS_NPZ = crops_rcc.npz of
+scripts/figdata/crops_kidney.py.
 (a) ablations on the 32 external Xenium sections: change of the median Spearman per section relative to one network trained
     with half of its patches randomized (mean of its three seeds); dots: sections, bar: mean, diamond: kidney held-out stripes
 (b) stage 2 vs stage 1 on the kidney held-out stripes: median over proteins and both sections of image statistics relative to

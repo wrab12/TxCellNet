@@ -94,4 +94,6 @@ for sd, bt, case in zip(SD, BT, CASE):
 D = pd.DataFrame(rows)
 print(D.groupby('method')[['pix_r', 'within_r']].median().round(3).to_string())
 for m, g in D[D.method != 'measured'].groupby('method'):
-    print(m, 'enrichment agreement across proteins (r):', round(float(np.corrcoef(g.enrich, g.enrich_measured)[0, 1]), 3) if g.enrich.std() > 1e-6 else 0)
+    p = g.groupby('protein')[['enrich', 'enrich_measured']].mean()  # paper: per-protein mean of the two sections (n = 27)
+    r = lambda t: round(float(np.corrcoef(t.enrich, t.enrich_measured)[0, 1]), 3) if t.enrich.std() > 1e-6 else 0
+    print(m, 'enrichment agreement across proteins (r):', r(p), '(protein x section:', r(g), ')')

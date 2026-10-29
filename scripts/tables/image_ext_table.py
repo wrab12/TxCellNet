@@ -15,9 +15,11 @@ WIT = [('TxCellNet (within)', 'TxC'), ('TxCellNet (cross)', 'TxC'), ('cognate mR
 P = D.groupby(['case', 'method'])[['pixel_r', 'within_r']].median()
 pix, wit = P.pixel_r.unstack('method'), P.within_r.unstack('method')
 L = [r'\begin{tabular}{@{}lrrrrrrrrrr@{}}', r'\toprule',
-     r' & & \multicolumn{6}{c}{pixel Pearson} & \multicolumn{3}{c}{within-cell Pearson}\\',
+     r' & & \multicolumn{6}{c}{Pixel Pearson} & \multicolumn{3}{c}{Within-cell Pearson}\\',
      r'\cmidrule(lr){3-8}\cmidrule(l){9-11}',
-     r' & & \multicolumn{3}{c}{trained within} & \multicolumn{2}{c}{on kidney} & & within & kidney & \\',
+     r' & & \multicolumn{3}{c}{\begin{tabular}[b]{@{}c@{}}Trained on\\same section\end{tabular}}'
+     r' & \multicolumn{2}{c}{\begin{tabular}[b]{@{}c@{}}Trained on\\kidney\end{tabular}}'
+     r' & & \begin{tabular}[b]{@{}c@{}}Same\\section\end{tabular} & Kidney & \\',
      r'\cmidrule(lr){3-5}\cmidrule(lr){6-7}',
      r'Readout & $n$ & ' + ' & '.join(s for _, s in PIX) + ' & ' + ' & '.join(s for _, s in WIT) + r'\\', r'\midrule']
 for name, f in GR:

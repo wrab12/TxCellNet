@@ -2,8 +2,8 @@
 markers, shaded by its rank within the column (darker = better), best per column in bold; last column = overall mean as a bar.
 Every printed glyph >= 10 pt (figstyle.print_min10; panel letters 11 pt). To fit at 10 pt: the panel title sits in the free
 header cell above the method names (short setting name as in main-text Fig. 2c, number of sections or pairs); the column
-headers name the dataset group only (readouts as in Table 1, group names as in main-text Fig. 2a), and b groups its columns
-under spanning dataset headers.
+headers name the dataset group only (readouts as in Supplementary Table S11, group names as in main-text Fig. 2a), and b
+groups its columns under spanning dataset headers.
 usage: figS5_tables.py DATA_DIR OUT_PREFIX
 """
 import sys

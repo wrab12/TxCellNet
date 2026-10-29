@@ -12,7 +12,10 @@ The same rule is applied to every source:
                    95% intervals from a spatial block bootstrap (200-um tiles resampled with replacement, 2,000 draws)
   exclusion index  immune fraction within 60 um inside the boundary divided by that within 60 um outside
 Agreement with IMC: Dice of tumour regions and of immune cells, Pearson r of the profiles across bins.
-usage: crlm_case.py OUT_DIR  -> OUT_DIR/{summary.csv, profiles.csv, thresholds.csv, map_<case>.npz}
+THRESHOLDS=dataset (check of the per-section rule, Supplementary S11): one Otsu threshold per source and marker for all
+sections of a dataset (panel group; crlm_462 includes the adjacent-normal section), e.g. IMC then calls only ~1% of the
+tumour 1 cells tumour cells. The default (section) is the rule of the paper.
+usage: [THRESHOLDS=section|dataset] crlm_case.py OUT_DIR  -> OUT_DIR/{summary.csv, profiles.csv, thresholds.csv, map_<case>.npz}
 """
 import json, os, sys, glob
 import numpy as np, pandas as pd, scipy.sparse as sp
@@ -23,8 +26,9 @@ from txcellnet.bench import PROTS
 
 OUT = sys.argv[1]; os.makedirs(OUT, exist_ok=True)
 CASES = ['crlm_tumor1', 'crlm_tumor2', 'crlm_tumor3_A1', 'crlm_tumor3_A2', 'crlm_tumor3_A3']
-GROUP = {'crlm_tumor1': 'crlm_462', 'crlm_tumor2': 'crlm_462',
+GROUP = {'crlm_tumor1': 'crlm_462', 'crlm_tumor2': 'crlm_462', 'crlm_adjnormal': 'crlm_462',
          'crlm_tumor3_A1': 'crlm_319', 'crlm_tumor3_A2': 'crlm_319', 'crlm_tumor3_A3': 'crlm_319'}
+THRESH = os.environ.get('THRESHOLDS', 'section'); assert THRESH in ('section', 'dataset'), THRESH
 SOURCES = ['IMC', 'TxCellNet', 'NicheTrans', 'DGAT', 'Cognate mRNA']
 ROLE = {'tumour': 'PanCK', 'immune': 'CD45', 'macrophage': 'CD68', 'tcell': 'CD3E'}
 R, MARGIN, TILE, BOOT = 25.0, 60.0, 200.0, 2000
@@ -82,12 +86,13 @@ def corr(a, b):
     f = np.isfinite(a) & np.isfinite(b); return np.corrcoef(a[f], b[f])[0, 1] if f.sum() > 3 else np.nan
 
 
-D = {c: load(c) for c in CASES}; print('loaded', flush=True)
+D = {c: load(c) for c in CASES + (['crlm_adjnormal'] if THRESH == 'dataset' else [])}; print('loaded', flush=True)
 thr = {}
 for s in SOURCES:
     for k in ROLE.values():
         for c in CASES:
-            thr[(c, s, k)] = threshold_otsu(D[c]['src'][s][k])
+            pool = [d for d in D if GROUP[d] == GROUP[c]] if THRESH == 'dataset' else [c]
+            thr[(c, s, k)] = threshold_otsu(np.concatenate([D[d]['src'][s][k] for d in pool]))
 pd.DataFrame([dict(case=c, source=s, marker=k, threshold=v) for (c, s, k), v in thr.items()]).to_csv(f'{OUT}/thresholds.csv', index=False)
 
 rows, prof_rows = [], []; rng = np.random.default_rng(0)

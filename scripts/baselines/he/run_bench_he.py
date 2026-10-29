@@ -1,11 +1,13 @@
 """Score the H&E -> protein baseline (train_he.py) on prepared cases that have a same-section H&E (he.npy), with the
 same cells, markers and metrics as run_bench_gen.py. H&E normalisation per case: per-channel z-score over tissue pixels.
+The last line reports the number of Supplementary Section S5: the mean over the test sections with an H&E (the nine breast
+test sections and the lymph node) of the median Spearman over markers.
 usage: run_bench_he.py OUT_DIR RUN_TAG CASE_DIR [CASE_DIR ...]
 """
 import json, os, sys
 import numpy as np, pandas as pd, scipy.sparse as sp, torch, torch.nn.functional as F
 
-from txcellnet.bench import PROTS, combine, log
+from txcellnet.bench import PROTS, TEST, combine, log
 from txcellnet.metrics import metrics
 from he_model import HENet
 
@@ -60,4 +62,7 @@ for cd in CASES:
         rows.append(dict(case=name, marker=key, method=f'HE:{TAG}', **metrics(combine(pc, mk['components'], key)[ok], tt[ok]), n=int(ok.sum())))
     df = pd.DataFrame(rows); df.to_csv(f'{OUT}/bench_rows.csv', index=False)
     log(name, f'HE:{TAG} median Spearman', round(df[df.case == name].spearman.median(), 3))
+if rows:  # Supplementary Section S5: mean over the test sections with an H&E of the median Spearman over markers
+    med = pd.DataFrame(rows).groupby('case').spearman.median(); test = [c for c in TEST if c in med.index]
+    if test: log(f'HE:{TAG} mean over the {len(test)} test sections with H&E', round(float(med[test].mean()), 3))
 log('done')

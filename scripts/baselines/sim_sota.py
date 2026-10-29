@@ -8,8 +8,10 @@ both sections; every cell is predicted from its RNA.
 modes:
   prep PERT           (main env) per-cell counts, targets, training mask and centroids -> data/sim/sota_cache/PERT_*
   run METHOD PERT     (pyg env: dgat, spamosaic; scvi env: totalvi) train and predict -> results/sim/sota/pred_METHOD_PERT.npz
-                      (SPAM_DEVICE=cpu: SpaMosaic on the CPU - its documented device option - when the graph of a
-                      perturbation does not fit in GPU memory)
+                      (SpaMosaic device, env SPAM_DEVICE: default cpu for thin50 and thin25, whose cross-section
+                      neighbour graphs do not fit in GPU memory (SpaMosaic's documented device option; the GPUs are then
+                      hidden for the whole run, as in the paper), cuda:0 otherwise. totalVI is trained on the CPU, as in
+                      totalvi_bench.py)
   eval PERT           (main env) metrics of all available predictions -> results/sim/sota/sim_rows_PERT.csv
                       (NicheTrans: pred_nichetrans_PERT.npz of nichetrans_official.py sim PERT, official tutorial training)
 PERT in {none, thin50, thin25, dilate2, merge20}
@@ -110,6 +112,8 @@ elif MODE == 'run':
             p = np.full((len(S[s]['node']), len(CH)), np.nan, np.float32)
             p[nodes[s]] = G.predict(enc_r, dec_p, Xr[s][:, ki], S[s]['xy'][nodes[s]], len(CH)); pred[s] = p
     elif METHOD == 'spamosaic':
+        device = os.environ.get('SPAM_DEVICE', 'cpu' if PERT.startswith('thin') else 'cuda:0')
+        if device == 'cpu': os.environ['CUDA_VISIBLE_DEVICES'] = ''  # whole run on the CPU (also SpaMosaic's Harmony), as in the paper
         import spamosaic_bench as Sm, scanpy as sc, torch
         from spamosaic.framework import SpaMosaic
         from spamosaic.preprocessing import RNA_preprocess, ADT_preprocess
@@ -128,7 +132,7 @@ elif MODE == 'run':
         ADT_preprocess(adt, batch_corr=True, batch_key='src', key='dimred_bc')
         D_ = {'rna': rna, 'adt': adt}
         for seed in (1234, 1235, 1236):
-            model = SpaMosaic(modBatch_dict=D_, input_key='dimred_bc', batch_key='src', intra_knns=10, inter_knn_base=10, w_g=0.8, seed=seed, device=os.environ.get('SPAM_DEVICE', 'cuda:0'))
+            model = SpaMosaic(modBatch_dict=D_, input_key='dimred_bc', batch_key='src', intra_knns=10, inter_knn_base=10, w_g=0.8, seed=seed, device=device)
             model.train(net='wlgcn', lr=0.01, T=0.01, n_epochs=100)
             if np.isfinite(model.loss_cl).all() and np.isfinite(model.loss_rec).all(): break
             log('SpaMosaic training diverged with seed', seed)
@@ -150,7 +154,7 @@ elif MODE == 'run':
         A.var_names = genes; A.obsm['protein_expression'] = pd.DataFrame(np.vstack(Ps)[lib].astype(np.float32), index=A.obs_names, columns=names)
         scvi.model.TOTALVI.setup_anndata(A, batch_key='batch', protein_expression_obsm_key='protein_expression')
         model = scvi.model.TOTALVI(A, latent_distribution='normal', n_layers_decoder=2)
-        model.train(max_epochs=min(round(20000 / A.n_obs * 400), 400), enable_progress_bar=False)
+        model.train(max_epochs=min(round(20000 / A.n_obs * 400), 400), accelerator=Tv.ACCEL, enable_progress_bar=False)  # CPU
         for s in SECT:
             q = np.flatnonzero(S[s]['node'])
             B = ad.AnnData(S[s]['X'][q].tocsr().astype(np.float32), obs=pd.DataFrame({'batch': pd.Categorical([f'{s}_all'] * len(q), categories=cats)},

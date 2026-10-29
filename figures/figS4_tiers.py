@@ -1,5 +1,5 @@
-"""Supplementary figure (v5, RECOMB 10-pt floor): the three evaluation settings per group of sections, on identical test cells
-(held-out stripes of the test section). Same numbers as fig_tiers.py (input: xsec_groups.csv of xsec_summary.py; mean over
+"""Supplementary Fig. S4: the three evaluation settings per group of sections, on identical test cells
+(held-out stripes of the test section). Input: xsec_groups.csv of scripts/evaluation/xsec_summary.py (mean over
 test sections or pairs of the per-section median Spearman). TxCellNet: clean + randomized single networks (solid), clean
 network alone (dashed), six-network ensemble of the main text (star). Kidney: single-section models, no cross-dataset setting.
 Layout (10 pt): 3 x 3 grid, seven groups in reading order, the key in the two free cells next to the kidney panel; line and

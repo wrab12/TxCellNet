@@ -25,6 +25,7 @@ modes:
                                    (kidney sections: cross mode with KID_TRAIN=rcc|ccrcc, see txcellnet.bench.load_kidney)
   sim PERT                         semi-synthetic benchmark (sim_sota.py prep cache) -> results/sim/sota/pred_nichetrans_PERT.npz
 NT_EPOCHS / NT_TAG: smoke tests only (fewer epochs, tagged outputs).
+The official model/nicheTrans.py imports torchvision and einops (the paper: torchvision 0.20.1, einops 0.8.2).
 """
 import json, os, random, sys, time
 import numpy as np, pandas as pd, scipy.sparse as sp, torch, torch.nn as nn

@@ -10,9 +10,10 @@ cells. A spot's RNA is the summed counts of its cells; its protein value is the 
 Methods (Spearman across the test spots, per marker):
   dgat_spot   DGAT trained and applied on the pseudo-spots, with the functions of dgat_bench.py (official model, losses,
               optimisers, early stopping, preprocessing - normalize_total, log1p and scaling per sample; protein CLR, here of
-              the spot intensity expm1(mean log1p) - and graphs: spatial kNN k=6, the six neighbours of the hexagonal lattice as
-              for Visium, united with an expression kNN k=10 and self loops; protein kNN). Training graphs hold training spots
-              only (tiles of <= TILE_TRAIN spots); the prediction graph holds all spots of the section.
+              the spot intensity expm1(mean log1p) - and graphs: spatial kNN k=6 on the spot centroids (mean position of the
+              spot's cells; mostly the six neighbours of the hexagonal lattice, as for Visium), united with an
+              expression kNN k=10 and self loops; protein kNN). Training graphs hold training spots only (tiles of about
+              TILE_TRAIN spots); prediction graphs hold all spots of the section (tiles of about TILE_PRED spots).
   dgat_cell, nichetrans, txcellnet   the per-cell predictions of the main benchmark, averaged over the cells of each spot.
 Cell-level scores on the same test cells are written too (level='cell') to check them against the main benchmark.
 

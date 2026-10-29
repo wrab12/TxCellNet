@@ -27,7 +27,7 @@ from .utils import log
 KIDNEY = {'rcc': 'data/xenium_protein_rcc/pilot_L2', 'ccrcc': 'data/xenium_protein_ccrcc/pilot_L2'}
 XSEC = 'results/bench/xsec'
 
-# ---------------- section lists (Table 1 of the paper) ----------------
+# ---------------- section lists (Supplementary Table S11) ----------------
 BREAST = lambda pts: [f'xen_breast_S{p}_{r}' for p in pts for r in ('Top', 'Mid', 'Bot')]
 KID = ['kidney_rcc', 'kidney_ccrcc']
 DEV = BREAST((1,)) + ['xen_lung_v1', 'xen_pancreas_v1', 'crlm_tumor1', 'crlm_tumor3_A1', 'duchini_core01_hcc']

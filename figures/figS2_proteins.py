@@ -1,5 +1,5 @@
-"""Supplementary figure (v5.2, RECOMB 10 pt floor): which proteins transfer. Same numbers as
-TxCellNet_code/scripts/figS3_proteins.py (input: its table figS3_table_proteins.csv; NicheTrans: nichetrans_off_e3).
+"""Supplementary Fig. S2: which proteins transfer. Input: protein_table.csv of scripts/figdata/protein_table.py
+(NicheTrans: nichetrans_off_e3).
 (a) TxCellNet's cell-level Spearman per protein: kidney held-out stripes | kidney cross-patient (trained on one section, tested
     on the other) | CRLM, IMC (test ROIs, median) | liver / tonsil, COMET (test cores, median); the cognate mRNA on CRLM; the
     difference TxCellNet minus NicheTrans on CRLM

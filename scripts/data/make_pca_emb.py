@@ -1,7 +1,8 @@
 """Fixed gene vectors for the PCA ablation: each gene of the kidney union vocabulary (495) gets its loadings on the top
 64 principal components of standardised log1p(normalize_total 1e3) expression of the kidney train-stripe cells (both
-sections; a gene measured in one section only is computed from that section's cells), scaled to the learned
-embeddings' initial SD (0.1).  -> results/bench/pca_gene_emb.npy (495, 64)
+sections, at most 150,000 random cells each; a gene measured in one section only is computed from that section's cells),
+multiplied by the singular values / sqrt(N) and scaled to the learned embeddings' initial SD (0.1).
+-> results/bench/pca_gene_emb.npy (495, 64)
 """
 import json
 import numpy as np, scipy.sparse as sp, h5py, pandas as pd

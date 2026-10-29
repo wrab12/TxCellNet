@@ -11,10 +11,10 @@ E = pd.concat([pd.read_csv(f) for f in glob.glob('results/sim/ens/sim_rows_*.csv
 E = E[E.method != 'NicheTrans']
 S = pd.concat([pd.read_csv(f) for f in glob.glob('results/sim/sota/sim_rows_*.csv')])
 D = pd.concat([E, S])
-ROWS = [('TxCellNet:ens_cr', 'TxCellNet (clean + rand.)'), ('TxCellNet:sim_plain', 'TxCellNet, clean'),
-        ('TxCellNet:sim_aug', 'TxCellNet, randomized'), ('TxCellNet:sim_mix', 'TxCellNet, mixed'),
+ROWS = [('TxCellNet:ens_cr', 'TxCellNet (clean + randomized)'), ('TxCellNet:sim_plain', 'TxCellNet, clean network'),
+        ('TxCellNet:sim_aug', 'TxCellNet, randomized network'), ('TxCellNet:sim_mix', 'TxCellNet, mixed network'),
         ('NicheTrans', 'NicheTrans'), ('DGAT', 'DGAT'), ('SpaMosaic', 'SpaMosaic'), ('totalVI', 'totalVI'),
-        ('ridge_niche', 'Ridge + neighbourhood'), ('ridge', 'Ridge')]
+        ('ridge_niche', 'Ridge + neighborhood'), ('ridge', 'Ridge')]
 ROWS = [(k, n) for k, n in ROWS if k in set(D.method)]
 NC = ['niche_r15', 'niche_r40', 'niche_r80']
 M = D.groupby(['perturb', 'method'])[['cell_spearman', 'pixel_pearson', 'within_cell']].mean()
@@ -27,9 +27,10 @@ def g(p, k, col='cell_spearman'):
 
 f2 = lambda v: '--' if not np.isfinite(v) else ('0' if abs(v) < 5e-3 else f'{v:.2f}')
 L = [r'\begin{tabular}{@{}lcccccccccc@{}}', r'\toprule',
-     r' & \multicolumn{3}{c}{unperturbed} & \multicolumn{2}{c}{molecules kept} & masks & cells & \multicolumn{3}{c}{niche channels}\\',
+     r' & \multicolumn{3}{c}{Unperturbed} & \multicolumn{2}{c}{\begin{tabular}[b]{@{}c@{}}Molecules\\kept\end{tabular}} & Masks & Cells'
+     r' & \multicolumn{3}{c}{Niche channels}\\',
      r'\cmidrule(lr){2-4}\cmidrule(lr){5-6}\cmidrule(l){9-11}',
-     r'Method & cell & pixel & within & 50\% & 25\% & dilated & merged & 15\,$\mu$m & 40\,$\mu$m & 80\,$\mu$m\\', r'\midrule']
+     r'Method & Cell & Pixel & Within-cell & 50\% & 25\% & dilated & merged & 15\,$\mu$m & 40\,$\mu$m & 80\,$\mu$m\\', r'\midrule']
 for k, name in ROWS:
     v = [g('none', k), g('none', k, 'pixel_pearson'), g('none', k, 'within_cell'), g('thin50', k), g('thin25', k), g('dilate2', k), g('merge20', k)]
     v += list(N.loc[k].values) if k in N.index else [np.nan] * 3

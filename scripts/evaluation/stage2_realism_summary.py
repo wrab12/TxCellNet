@@ -6,6 +6,8 @@ change, 'closer' = higher correlation.
 Matched-noise controls (columns dist_noise, dist_noise_s1, when present): median distance of the control, number of proteins
 where stage 2 is closer than the control, and the same paired test of stage 2 against the control.
 usage: stage2_realism_summary.py PER_PROTEIN_CSV [KID_CSV ...] OUT_CSV
+  -> OUT_CSV (summary) and, next to it, the concatenated input rows (<prefix>_per_protein_all.csv for OUT_CSV =
+     <prefix>_summary.csv), read by figures/fig3_images.py and figures/figS1b_stage2_realism.py
 """
 import sys
 import numpy as np, pandas as pd

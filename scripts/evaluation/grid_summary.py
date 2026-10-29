@@ -11,7 +11,7 @@ from txcellnet.bench import GRID_GROUPS_WITHIN as GROUPS_WITHIN, GRID_GROUPS_CRO
 OUT = sys.argv[1] if len(sys.argv) > 1 else 'results/bench/grid'
 os.makedirs(f'{OUT}/summary', exist_ok=True)
 HEAD = {'Kidney (IF)': ('Kidney', '(IF)'), 'CRLM (IMC)': ('CRLM', '(IMC)'), 'Liver, tonsil (COMET)': ('Liver, tonsil', '(COMET)'),
-        'Breast (stains)': ('Breast', '(stains)'), 'Lung, pancreas (stains)': ('Lung, panc.', '(stains)'),
+        'Breast (stains)': ('Breast', '(stains)'), 'Lung, pancreas (stains)': ('Lung, pancreas', '(stains)'),
         'Lymph node, fresh (stains)': ('LN, fresh', '(stains)'), 'Lymph node (stains)': ('Lymph node', '(stains)'),
         'Fresh (stains)': ('Fresh', '(stains)')}
 
@@ -53,7 +53,7 @@ for setting, groups in (('within', GROUPS_WITHIN), ('cross', GROUPS_CROSS)):
     G = tabs[(setting, 'spot')]; best = G.max(0); cols = list(G.columns)
     h1 = ' & '.join(HEAD.get(c, (c, ''))[0] for c in cols); h2 = ' & '.join(HEAD.get(c, (c, ''))[1] for c in cols)
     n = ' & '.join(str(len(cs)) for _, cs in groups) + f' & {sum(len(cs) for _, cs in groups)}'
-    L = [f'\\begin{{tabular}}{{@{{}}l{"r" * len(cols)}@{{}}}}', '\\toprule', f'Method & {h1}\\\\', f' & {h2}\\\\', f'sections & {n}\\\\', '\\midrule']
+    L = [f'\\begin{{tabular}}{{@{{}}l{"r" * len(cols)}@{{}}}}', '\\toprule', f'Method & {h1}\\\\', f' & {h2}\\\\', f'Sections & {n}\\\\', '\\midrule']
     for m, name in METHODS:
         if m not in G.index: continue
         L.append(f'{name} & ' + ' & '.join((f'\\textbf{{{v:.3f}}}' if abs(v - best[c]) < 5e-4 else f'{v:.3f}') if np.isfinite(v) else '--'

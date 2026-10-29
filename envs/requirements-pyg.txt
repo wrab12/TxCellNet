@@ -1,9 +1,11 @@
 # PyG environment (DGAT, SpaMosaic, spot-level evaluation, semi-synthetic DGAT / SpaMosaic):
-# the main environment (requirements.txt, PyTorch 2.5 / CUDA 12.1) plus the packages below.
+# the main environment (requirements.txt, PyTorch 2.5 / CUDA 12.1) plus the packages below (versions used for the paper).
 # torch_scatter and torch_sparse: wheels for torch 2.5 / CUDA 12.1 from https://data.pyg.org/whl/torch-2.5.0+cu121.html
 torch_geometric==2.6.1
-torch_scatter
-torch_sparse
-harmony-pytorch
-annoy
-hnswlib
+torch_scatter==2.1.2
+torch_sparse==0.6.18
+harmony-pytorch==0.1.8
+annoy==1.17.3
+hnswlib==0.8.0
+# imported by SpaMosaic (spamosaic/utils.py)
+pyyaml

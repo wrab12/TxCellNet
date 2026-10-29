@@ -1,8 +1,9 @@
 """Within-dataset cell-level baselines on one prepared case: trained on the cells of the training stripes (same split as
 train_case.py), all panel genes, targets = the case's measured per-cell values; scored on the held-out stripes.
-Methods: ridge, MLP, kNN reference mapping (PCA-50), cell-type lookup (30 k-means clusters), NicheTrans (12 spatial
-neighbours), cognate mRNA. Features: log1p(normalize_total 1e3) over the panel genes detected in >= 0.1% of training
-cells, at most the 2,000 most variable (5K panels); models are fitted on at most 200,000 training cells.
+Methods: ridge, MLP, kNN reference mapping (PCA-50), cell-type lookup (30 k-means clusters), NicheTrans (official model
+class, 12 spatial neighbours, short training; not used in the paper, whose NicheTrans follows the official tutorial:
+nichetrans_official.py), cognate mRNA. Features: log1p(normalize_total 1e3) over the panel genes detected in >= 0.1% of
+training cells, at most the 2,000 most variable (5K panels); models are fitted on at most 200,000 training cells.
 usage: within_baselines.py CASE [CASE ...]   -> results/bench/within/CASE__baselines.csv
 """
 import json, os, sys, time

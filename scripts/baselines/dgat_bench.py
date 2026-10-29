@@ -8,10 +8,10 @@ the evidence-based early stopping (Model/Train_and_Predict.py::train, single-GPU
 and the graphs (utils/Graph_utils.py: spatial kNN k=6 united with an expression kNN k=10 - on PCA to 85% variance when
 there are > 1500 genes - and self loops; the protein graph uses the protein kNN; edges i -> neighbours(i)).
 Changes needed at our scale: graphs are built with a sparse GPU kNN instead of the dense N x N adjacency, per spatially
-compact tile of <= TILE_TRAIN training cells (one tile = one graph = one optimisation step, like one Visium sample in the
-original; prediction tiles <= TILE_PRED cells); no per-cell gene-count filter (min_genes=700 removes every cell of a
-~400-gene Xenium panel); the gene filter of the original (detected in >= 2.5% of training cells, plus the targets' coding
-genes) is used as in the original.
+compact tile of about TILE_TRAIN training cells (tiles(): fewer than 1.5 x TILE_TRAIN; one tile = one graph = one
+optimisation step, like one Visium sample in the original; prediction tiles of about TILE_PRED cells); no per-cell
+gene-count filter (min_genes=700 removes every cell of a ~400-gene Xenium panel); the gene filter of the original
+(detected in >= 2.5% of training cells, plus the targets' coding genes) is used as in the original.
 Predictions (CLR scale) are standardised with the training targets' mean and SD (kidney z-units for the cocktails).
 modes:
   cross OUT_DIR GROUP[,GROUP...]   train on the kidney training stripes with the group's genes (panel-matched, like the

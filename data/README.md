@@ -87,8 +87,8 @@ microscope image, saved as `tissue_image.tif` or `tissue_image.btf`.
 
 ## Benchmark sections
 
-`NAME` is the directory under `data/cases/`. `TISSUE` and `PANEL` are labels copied into Table 1 (`bench_cases.csv`); they
-do not affect any computation.
+`NAME` is the directory under `data/cases/`. `TISSUE` and `PANEL` are labels copied into Supplementary Table S11
+(`bench_cases.csv`); they do not affect any computation.
 
 | Section(s) | NAME | Preparation (input) | TISSUE | PANEL |
 |---|---|---|---|---|

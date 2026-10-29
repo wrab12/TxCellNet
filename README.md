@@ -69,9 +69,10 @@ conda activate txcellnet
 ```
 
 Install PyTorch for your CUDA version ([PyTorch installation guide](https://pytorch.org/get-started/locally/); run
-`nvidia-smi` to check the CUDA version). The paper used PyTorch 2.5 with CUDA 12.1:
+`nvidia-smi` to check the CUDA version). The paper used PyTorch 2.5 with CUDA 12.1 (torchvision is imported by the
+official NicheTrans model):
 ```bash
-pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+pip install torch==2.5.1 torchvision==0.20.1 --index-url https://download.pytorch.org/whl/cu121
 ```
 
 Install the dependencies and the package.
@@ -186,6 +187,7 @@ python scripts/baselines/ens_cellbase.py results/bench/cellbase_e3 mlp_pm result
 GENESET=union python scripts/baselines/baselines_cell.py results/bench/cellbase_u full
 #    NicheTrans as in its official Xenium tutorial (8 panel groups x 3 seeds, 3-seed ensemble; kidney rows: 387 shared genes)
 for g in $PANEL_GROUPS; do for s in 1 2 3; do SEED=$s python scripts/baselines/nichetrans_official.py cross results/bench/nt_off_${g}_s$s $g; done; done
+for s in 1 2 3; do VHD=1 SEED=$s python scripts/baselines/nichetrans_official.py cross results/bench/nt_off_vhd_s$s full; done   # Visium HD (Supplementary S4)
 python scripts/baselines/ens_cellbase.py results/bench/nt_off_e3 nichetrans_off $(ls -d results/bench/nt_off_*_s[123] | paste -sd, -)
 GENESET=union python scripts/baselines/nichetrans_official.py cross results/bench/nt_off_full_u full   # same-section kidney rows
 python scripts/baselines/nt_graph_equiv.py                                            # CUDA-graph replay = eager execution
@@ -262,16 +264,14 @@ python scripts/baselines/grid_eval.py within $EXT                            # P
 python scripts/baselines/grid_eval.py cross ${PANEL_GROUPS// /,}             # PyG env; group 'full' = kidney held-out stripes
 python scripts/evaluation/grid_summary.py results/bench/grid                 # tables, wins, Wilcoxon tests, table_grid_*.tex
 
-# 7. ablations (Supplementary S3): mixed reference networks (3 seeds), per-panel retraining (2 seeds), components
+# 7. ablations (Supplementary S3): mixed reference networks (3 seeds), components
 for s in 1 2 3; do PAUG=0.5 THIN=1 GDROP=0.5 DAUG=1 SEED=$s python scripts/train/train_gen.py pm_full_s$s 24000; done
-for g in v1_377 breast_280 crlm_462 crlm_319 x5k; do for s in 1 2; do
-  PANEL=$g PAUG=0.5 THIN=1 GDROP=0.5 DAUG=1 SEED=$s python scripts/train/train_gen.py pm_${g}_s$s 24000; done; done
 python scripts/data/make_pca_emb.py
 NODAPI=1 PAUG=0.5 THIN=1 GDROP=0.5 DAUG=1 SEED=1 python scripts/train/train_gen.py abl_nodapi_full 24000
 NONICHE=1 PAUG=0.5 THIN=1 GDROP=0.5 DAUG=1 SEED=1 python scripts/train/train_gen.py abl_noniche_full 24000
 PCAEMB=1 PAUG=0.5 THIN=1 GDROP=0.5 DAUG=1 SEED=1 python scripts/train/train_gen.py abl_pca_full 24000
 ENS="tx_mix3=pm_full_s1+pm_full_s2+pm_full_s3;tx_c1r1=fin_clean_s1+fin_rand_s1" python scripts/benchmark/run_bench_gen.py \
-  results/bench/ablation pm_full_s1,pm_full_s2,pm_full_s3,pm_s1=pm_{panel}_s1,pm_s2=pm_{panel}_s2,abl_nodapi_full,abl_noniche_full,abl_pca_full,fin_clean_s1,fin_rand_s1 data/cases/*
+  results/bench/ablation pm_full_s1,pm_full_s2,pm_full_s3,abl_nodapi_full,abl_noniche_full,abl_pca_full,fin_clean_s1,fin_rand_s1 data/cases/*
 for r in pm_full_s1 abl_nodapi_full abl_noniche_full abl_pca_full; do python scripts/train/pred_kidney_full.py $r ${r}_img; done
 python scripts/evaluation/image_metrics_runs.py results/bench/image_ablation.csv pm_full_s1_img,abl_nodapi_full_img,abl_noniche_full_img,abl_pca_full_img
 
@@ -302,6 +302,7 @@ python scripts/figdata/sim_loc_crops.py                 # held-out window of Fig
 # 9. case study: tumour-immune architecture of the five CRLM tumour sections (models trained on kidney; the same rule for
 #    measured IMC, TxCellNet, NicheTrans, DGAT and the cognate mRNA)
 python scripts/evaluation/crlm_case.py results/case_crlm/final       # summary.csv, profiles.csv, thresholds.csv, map_<section>.npz
+THRESHOLDS=dataset python scripts/evaluation/crlm_case.py results/case_crlm/dataset   # check: one threshold per dataset (Supplementary S11)
 ```
 
 `txcellnet/bench.py` holds the data access shared by all methods (cells, splits, targets, scoring), so that every method
@@ -332,7 +333,7 @@ cp results/stage2_realism/stage2_realism_per_protein_all.csv results/stage2_real
 cp -r results/sim/ens $F/sim_ens; cp -r results/sim/sota $F/sim_sota; cp -r results/case_crlm/final $F/case_crlm
 mkdir -p $F/sim_loc && cp results/sim/loc/sim_loc_rows.csv results/sim/loc/crops_common_rcc.npz $F/sim_loc/
 python scripts/evaluation/summarize_final.py $F/ablation_all.csv txcellnet \
-  pm_full_s1,pm_full_s2,pm_full_s3,pm_s1,pm_s2,$FIN,abl_nodapi_full,abl_noniche_full,abl_pca_full,tx_mix3,tx_c1r1
+  pm_full_s1,pm_full_s2,pm_full_s3,$FIN,abl_nodapi_full,abl_noniche_full,abl_pca_full,tx_mix3,tx_c1r1
 python scripts/figdata/protein_table.py $F nichetrans_off_e3
 python scripts/figdata/per_protein_rows.py $F    # per-protein panel of Fig. 2b and Table S13
 bash figures/make_all.sh $F figures_out    # SVG, PDF, PNG preview and the plotted numbers (CSV) of every figure
@@ -362,7 +363,6 @@ python scripts/tables/case_table.py results/case_crlm/final/summary.csv results/
 | Fig. S4 (three settings per group) | `scripts/evaluation/xsec_summary.py`, `figures/figS4_tiers.py` |
 | Fig. S5 (group means of every method) | `scripts/tables/bench_tables.py`, `figures/figS5_tables.py` |
 | Fig. S6 (paired comparison per section, three settings) | `scripts/tables/bench_tables.py`, `scripts/evaluation/xsec_summary.py`, `figures/figS6_paired.py` |
-| Table 1 (benchmark sections) | `scripts/benchmark/own_only.py` (`bench_cases.csv`) |
 | Table S1 (semi-synthetic benchmark; per-channel localization) | `scripts/tables/sim_table.py`, `scripts/evaluation/sim_loc.py`, `scripts/tables/sim_loc_table.py` |
 | Table S2 (readouts, stain-cocktail weights) | `scripts/data/fit_cocktail.py` |
 | Tables S3, S4 (per section: cross-dataset / same-section setting) | `scripts/tables/bench_tables.py cross` / `within` (`table_cross.tex`, `table_within.tex`) |
@@ -371,7 +371,8 @@ python scripts/tables/case_table.py results/case_crlm/final/summary.csv results/
 | Table S7 (other-section setting) | `scripts/evaluation/xsec_summary.py`, `scripts/tables/xsec_table_tex.py` |
 | Table S8 (spot-level evaluation) | `scripts/baselines/grid_eval.py`, `scripts/evaluation/grid_summary.py` |
 | Table S9 (case study, per section) | `scripts/evaluation/crlm_case.py`, `scripts/tables/case_table.py` |
-| Table S11 (data sources) | `data/README.md` |
+| Table S11 (benchmark sections: scored cells, vocabulary molecules per cell) | `scripts/benchmark/own_only.py` (`bench_cases.csv`) |
+| Table S12 (data sources) | `data/README.md` |
 | Table S13 (per protein and method on kidney and CRLM: the values of Fig. 2b) | `scripts/figdata/per_protein_rows.py`, `figures/perprotein.py`, `figures/table_per_protein.py` (run by `figures/make_all.sh`) |
 
 ## Pretrained models

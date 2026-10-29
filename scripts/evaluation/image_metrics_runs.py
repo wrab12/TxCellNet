@@ -49,4 +49,7 @@ for sd, bt in zip(SD, BT):
         pd.DataFrame(rows).to_csv(OUT, index=False); print(bt, p, flush=True)
 D = pd.DataFrame(rows)
 print(D.groupby('run')[['pix_r', 'within_r']].median().round(3).to_string())
-for r, g in D.groupby('run'): print(r, 'enrichment agreement r =', round(float(np.corrcoef(g.enrich, g.enrich_measured)[0, 1]), 3))
+for r, g in D.groupby('run'):
+    p = g.groupby('protein')[['enrich', 'enrich_measured']].mean()  # paper: per-protein mean of the two sections (n = 27)
+    print(r, 'enrichment agreement r =', round(float(np.corrcoef(p.enrich, p.enrich_measured)[0, 1]), 3),
+          '(protein x section:', round(float(np.corrcoef(g.enrich, g.enrich_measured)[0, 1]), 3), ')')
