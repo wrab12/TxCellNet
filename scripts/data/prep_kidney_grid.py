@@ -59,7 +59,7 @@ def main(sample, level=2):
         a = read_level(f'{root}/morphology_focus/{fname(p)}', level).astype(np.float32)
         valid &= a >= 90  # saturation-masked pixels are 0 before the +100 offset
         T[j] = np.log1p(np.clip(a - 100, 0, None))
-        log('protein', p, fname(p), 'p99', float(np.percentile(T[j], 99)))
+        log('protein', p, fname(p), 'p99', float(np.percentile(T[j].astype(np.float32), 99)))  # float32: the float16 percentile overflows
 
     # tissue mask from DAPI
     d = gaussian_filter(dapi, 4)
