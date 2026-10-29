@@ -1,13 +1,14 @@
-"""Supplementary Fig. S3: predicted images of every compared method, in the windows of Fig. 3a
-(held-out kidney) and Fig. 3b (colorectal liver metastasis with same-section IMC, kidney-trained models). Three-protein
+"""Supplementary figure (v5, RECOMB 10-pt floor): predicted images of every compared method, in the window of Fig. 3a
+(held-out kidney) and in a window of colorectal liver metastasis tumour 3, ROI A3 (same-section IMC, kidney-trained models;
+the old Fig. 3b window, which is no longer in the main text). Three-protein
 composites as in Fig. 3 (each channel scaled from its median to its 99.5th percentile over the panel's cell pixels); columns:
 measured, TxCellNet stage 1 and stage 2, the published methods and the baselines (per-cell predictions painted into their
 cells), and the cognate mRNA (Gaussian-smoothed density of the molecules of the coding genes, sigma = 2 pixels). Under each
 row: cell-level Spearman of each protein over all scored cells of the section (bold: best).
-Layout (10 pt): twelve columns; the column titles do not fit over the 0.49-in tiles at 10 pt,
-so they are set vertically (bottom to top, at most two lines); the protein colour key sits in the first column of
+Layout (10 pt): the twelve columns of the 5-7 pt version are kept; at 10 pt the column titles no longer fit over the 0.49-in
+tiles, so they are set vertically (bottom to top, at most two lines); the protein colour key sits in the first column of
 each table of numbers (under 'Measured', which has no value), as in Fig. 3. 'Painted into cells' is stated in the caption.
-Every printed glyph >= 10 pt (figstyle.print_min10), panel letters 11 pt.
+Every printed glyph >= 10 pt (figstyle.print_min10), panel letters 11 pt. Same numbers as the 5-7 pt version.
 usage: figS3_allmethods.py DATA_DIR OUT_PREFIX
 """
 import json, sys
@@ -55,7 +56,7 @@ YB_T = YB + 0.25 + HB + 0.04                       # (b) top of the first tile r
 YB_T2 = YB_T + row_h(3) + GR
 H = round(YB_T2 + row_h(2) + 0.03, 2)
 fig = plt.figure(figsize=(W, H)); REND = fig.canvas.get_renderer()
-PAN = {}  # panel id -> axes, for the optional alignment check
+PAN = {}  # panel id -> axes, for the alignment audit
 
 
 def txt(x, y, s, **kw):
@@ -130,7 +131,7 @@ y = block_row(YA_T, 'kidney_rcc', ['E-Cadherin', 'CD45', 'Ki-67'], kid, cellk, e
 assert abs(y + GR - YA_T2) < 1e-9
 y = block_row(YA_T2, 'kidney_rcc', ['Vimentin', 'CD68', 'PanCK'], kid, cellk, edgek, rid='k2_')
 
-# ---------------- (b) CRLM, IMC, window of Fig. 3b ----------------
+# ---------------- (b) CRLM tumour 3, ROI A3, IMC (the window of the old Fig. 3b) ----------------
 C = np.load(f'{DD}/crlm_tumor3_A3_allm.npz'); marks = [str(m) for m in C['marks']]
 CG = np.load(f'{DD}/crlm_tumor3_A3_cognate.npz'); assert [str(m) for m in CG['marks']] == marks
 cellc = C['lab'] > 0; edgec = find_boundaries(C['lab'], mode='inner').astype(float) * 0.6
@@ -143,7 +144,7 @@ def crlm(k, p):
 
 
 label(fig, 0.0, YB, 'b')
-txt(0.17, YB, 'Liver metastasis, same-section IMC, window of Fig. 3b (255 µm); models trained on kidney', va='top')
+txt(0.17, YB, 'Liver metastasis (tumor 3, ROI A3), same-section IMC (255 µm); models trained on kidney', va='top')
 headers(YB_T - 0.04, 'Measured\n(IMC)')
 y = block_row(YB_T, 'crlm_tumor3_A3', ['PanCK', 'CD45', 'CD68'], crlm, cellc, edgec, bar_um=50, rid='c1_')
 assert abs(y + GR - YB_T2) < 1e-9

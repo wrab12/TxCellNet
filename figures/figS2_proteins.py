@@ -1,5 +1,5 @@
-"""Supplementary Fig. S2: which proteins transfer. Input: protein_table.csv written by scripts/figdata/protein_table.py
-(NicheTrans: nichetrans_off_e3).
+"""Supplementary figure (v5.2, RECOMB 10 pt floor): which proteins transfer. Same numbers as
+TxCellNet_code/scripts/figS3_proteins.py (input: its table figS3_table_proteins.csv; NicheTrans: nichetrans_off_e3).
 (a) TxCellNet's cell-level Spearman per protein: kidney held-out stripes | kidney cross-patient (trained on one section, tested
     on the other) | CRLM, IMC (test ROIs, median) | liver / tonsil, COMET (test cores, median); the cognate mRNA on CRLM; the
     difference TxCellNet minus NicheTrans on CRLM
@@ -23,7 +23,7 @@ FS = 10          # every text item
 H = pd.read_csv(TAB, index_col=0)
 H.columns = [c.replace('\n', ' ') for c in H.columns]
 CAT = {'Immune\nlineage': ['CD20', 'CD3E', 'CD4', 'CD8A', 'CD45', 'CD45RO', 'CD45RA', 'CD68', 'CD163', 'CD11c', 'CD16'],
-       'Epithelial,\ntumour': ['PanCK', 'E-Cadherin', 'Beta-catenin'],
+       'Epithelial,\ntumor': ['PanCK', 'E-Cadherin', 'Beta-catenin'],
        'Stromal,\nvascular': ['Vimentin', 'alphaSMA', 'CD31'],
        'Cell state,\ncheckpoint': ['Ki-67', 'PD-1', 'PD-L1', 'VISTA', 'GranzymeB']}
 CATCOL = ['#7B5EA7', '#3E9C8F', '#C49A2C', '#B0567A']

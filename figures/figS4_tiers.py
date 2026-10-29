@@ -1,10 +1,10 @@
-"""Supplementary Fig. S4: the three evaluation settings per group of sections, on identical test cells (held-out stripes
-of the test section). Input: xsec_groups.csv of xsec_summary.py (mean over test sections or pairs of the per-section median
-Spearman). TxCellNet: clean + randomized single networks (solid), clean
+"""Supplementary figure (v5, RECOMB 10-pt floor): the three evaluation settings per group of sections, on identical test cells
+(held-out stripes of the test section). Same numbers as fig_tiers.py (input: xsec_groups.csv of xsec_summary.py; mean over
+test sections or pairs of the per-section median Spearman). TxCellNet: clean + randomized single networks (solid), clean
 network alone (dashed), six-network ensemble of the main text (star). Kidney: single-section models, no cross-dataset setting.
 Layout (10 pt): 3 x 3 grid, seven groups in reading order, the key in the two free cells next to the kidney panel; line and
 marker sizes as in main-text Fig. 2c (markers not clipped at the top of the y range). Every printed glyph >= 10 pt
-(figstyle.print_min10).
+(figstyle.print_min10). Same numbers as the 5-7 pt version.
 usage: figS4_tiers.py GROUPS_CSV OUT_PREFIX
 """
 import sys
@@ -17,7 +17,7 @@ FS = 10  # every text in this figure
 
 G = pd.read_csv(sys.argv[1]); OUT = sys.argv[2]
 GROUPS = [('breast, same patient', 'Breast: same patient,\nother region (12 pairs)'), ('breast, other patient', 'Breast: other patient,\nsame region (12)'),
-          ('CRLM tumour 3, other ROI', 'CRLM tumour 3:\nother ROI (6)'), ('CRLM, other section', 'CRLM: other section,\n8–469 counts per cell (6)'),
+          ('CRLM tumour 3, other ROI', 'CRLM tumor 3:\nother ROI (6)'), ('CRLM, other section', 'CRLM: other section,\n8–469 counts per cell (6)'),
           ('COMET, other liver core', 'COMET: other\nliver core (6)'), ('COMET, liver <-> tonsil', 'COMET: liver and\ntonsil cores (6)'),
           ('kidney, other patient', 'Kidney: RCC and ccRCC\n(2, single-section models)')]
 LINES = [('own_mRNA', 'Cognate mRNA'), ('totalvi', None), ('spamosaic', None), ('dgat', None), ('mlp', None),

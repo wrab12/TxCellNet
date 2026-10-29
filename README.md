@@ -45,7 +45,7 @@ TxCellNet/
 │   ├── evaluation/             # setting summaries, image-level metrics, robustness, semi-synthetic, case study
 │   ├── tables/                 # LaTeX tables of the supplementary material
 │   └── figdata/                # image windows and tables read by the figure scripts
-├── figures/                    # figure scripts (Figs 2-5, Supplementary Figs S1-S5) and make_all.sh
+├── figures/                    # figure scripts (Figs 2-5, Supplementary Figs S1-S6, Table S13) and make_all.sh
 ├── data/README.md              # data sources and expected layout (no data in the repository)
 ├── envs/                       # extra requirements of the PyG (DGAT, SpaMosaic) and scvi (totalVI) environments
 ├── smoke_test.py               # end-to-end test on synthetic data
@@ -277,6 +277,12 @@ python scripts/evaluation/image_metrics_runs.py results/bench/image_ablation.csv
 
 # 8. image level (Fig. 3c,d; Supplementary S7, Table S6) and semi-synthetic benchmark (Fig. 4; Supplementary S1, Table S1)
 python scripts/evaluation/image_metrics.py fin_ens6 refine_fin results/bench/image_metrics_kidney_fin.csv
+# stage 2 vs stage 1 vs measured (kidney held-out stripes), with a stage 1 + matched-noise control: pixel W1, GLCM texture,
+# per-cell features, patch SWD, Cellpose KID
+python scripts/evaluation/stage2_realism.py results/stage2_realism
+python scripts/evaluation/stage2_kid_cellpose.py results/stage2_realism/stage2_kid_cellpose.csv
+python scripts/evaluation/stage2_realism_summary.py results/stage2_realism/stage2_realism_per_protein.csv \
+  results/stage2_realism/stage2_kid_cellpose.csv results/stage2_realism/stage2_realism_summary.csv
 python scripts/evaluation/image_metrics_ext.py results/bench/image_metrics_ext.csv $EXT
 python scripts/data/sim_make.py rcc; python scripts/data/sim_make.py ccrcc
 SIMROOT=data/sim SEED=1 python scripts/train/train_gen.py sim_plain 12000                                 # clean
@@ -290,6 +296,8 @@ for PERT in none thin50 thin25 dilate2 merge20; do
   python scripts/baselines/nichetrans_official.py sim $PERT
   python scripts/baselines/sim_sota.py eval $PERT
 done
+python scripts/evaluation/sim_loc.py results/sim/loc    # share of each synthetic protein in its intended compartment
+python scripts/figdata/sim_loc_crops.py                 # held-out window of Fig. 4a (all four compartments expressed)
 
 # 9. case study: tumour-immune architecture of the five CRLM tumour sections (models trained on kidney; the same rule for
 #    measured IMC, TxCellNet, NicheTrans, DGAT and the cognate mRNA)
@@ -320,16 +328,20 @@ python scripts/figdata/sim_region.py results/windows
 python scripts/figdata/allmethods_extract.py $F results/windows; python scripts/figdata/allmethods_cognate.py $F
 cp results/windows/crops_rcc.npz results/bench/image_metrics_kidney_fin.csv $F/
 cp data/xenium_protein_rcc/pilot_L2/runs/refine_fin/metrics.csv $F/refine_metrics.csv
+cp results/stage2_realism/stage2_realism_per_protein_all.csv results/stage2_realism/stage2_realism_summary.csv $F/
 cp -r results/sim/ens $F/sim_ens; cp -r results/sim/sota $F/sim_sota; cp -r results/case_crlm/final $F/case_crlm
+mkdir -p $F/sim_loc && cp results/sim/loc/sim_loc_rows.csv results/sim/loc/crops_common_rcc.npz $F/sim_loc/
 python scripts/evaluation/summarize_final.py $F/ablation_all.csv txcellnet \
   pm_full_s1,pm_full_s2,pm_full_s3,pm_s1,pm_s2,$FIN,abl_nodapi_full,abl_noniche_full,abl_pca_full,tx_mix3,tx_c1r1
 python scripts/figdata/protein_table.py $F nichetrans_off_e3
+python scripts/figdata/per_protein_rows.py $F    # per-protein panel of Fig. 2b and Table S13
 bash figures/make_all.sh $F figures_out    # SVG, PDF, PNG preview and the plotted numbers (CSV) of every figure
 ```
 
 Supplementary tables:
 ```bash
 python scripts/tables/sim_table.py results/tables/table_sim.tex
+python scripts/tables/sim_loc_table.py results/sim/loc/sim_loc_rows.csv results/tables/table_sim_loc   # localization part of Table S1 (.tex, _zh.tex, _data.csv)
 python scripts/evaluation/robustness.py results/bench/robustness
 python scripts/tables/robust_tex.py results/bench/robustness/robustness.json results/tables/table_robust.tex
 python scripts/tables/image_ext_table.py results/bench/image_metrics_ext.csv results/tables/table_image_ext.tex
@@ -339,17 +351,19 @@ python scripts/tables/case_table.py results/case_crlm/final/summary.csv results/
 | Paper | Script(s) |
 |---|---|
 | Fig. 1 (method overview) | drawn by hand (`TxCellNet.png`) |
-| Fig. 2 (cross-dataset setting; three settings on identical test cells) | `scripts/tables/bench_tables.py`, `scripts/evaluation/xsec_summary.py`, `figures/fig2_bench.py` |
-| Fig. 3 (images; within-cell patterns) | `scripts/figdata/crops_kidney.py`, `crlm_window.py`, `allmethods_extract.py`, `scripts/evaluation/image_metrics.py`, `figures/fig3_images.py` |
-| Fig. 4 (semi-synthetic benchmark) | `scripts/evaluation/sim_eval.py`, `scripts/baselines/sim_sota.py`, `scripts/figdata/sim_region.py`, `figures/fig4_sim.py` |
+| Fig. 2 (three settings on identical test cells; per protein on kidney and CRLM; cross-dataset group means) | `scripts/tables/bench_tables.py`, `scripts/evaluation/xsec_summary.py`, `scripts/figdata/per_protein_rows.py`, `figures/perprotein.py`, `figures/fig2_bench.py` |
+| Fig. 3 (images; within-cell patterns; stage-2 realism with matched-noise control) | `scripts/figdata/crops_kidney.py`, `allmethods_extract.py`, `scripts/evaluation/image_metrics.py`, `stage2_realism.py`, `stage2_kid_cellpose.py`, `stage2_realism_summary.py`, `figures/fig3_images.py` |
+| Fig. 4 (semi-synthetic benchmark by compartment) | `scripts/evaluation/sim_eval.py`, `scripts/baselines/sim_sota.py`, `scripts/evaluation/sim_loc.py`, `scripts/figdata/sim_loc_crops.py`, `figures/fig4_sim.py` |
 | Fig. 5 (case study: tumour-immune architecture of liver metastases) | `scripts/evaluation/crlm_case.py`, `figures/fig5_case.py` |
 | Fig. S1 (ablations, stage 2) | `scripts/evaluation/summarize_final.py`, `scripts/train/train_refine.py`, `figures/figS1_ablation.py` |
+| Stage-2 realism panel (stage 2 vs stage 1 vs measured, matched-noise control; `figS1b_stage2_realism`) | `scripts/evaluation/stage2_realism.py`, `stage2_kid_cellpose.py`, `stage2_realism_summary.py`, `figures/figS1b_stage2_realism.py` |
 | Fig. S2 (which proteins transfer; kidney cross-patient column: `x_rcc_only`, `x_ccrcc_only`) | `scripts/figdata/protein_table.py`, `figures/figS2_proteins.py` |
-| Fig. S3 (images of every method) | `scripts/figdata/allmethods_extract.py`, `allmethods_cognate.py`, `figures/figS3_allmethods.py` |
+| Fig. S3 (images of every method) | `scripts/figdata/crlm_window.py`, `allmethods_extract.py`, `allmethods_cognate.py`, `figures/figS3_allmethods.py` |
 | Fig. S4 (three settings per group) | `scripts/evaluation/xsec_summary.py`, `figures/figS4_tiers.py` |
 | Fig. S5 (group means of every method) | `scripts/tables/bench_tables.py`, `figures/figS5_tables.py` |
+| Fig. S6 (paired comparison per section, three settings) | `scripts/tables/bench_tables.py`, `scripts/evaluation/xsec_summary.py`, `figures/figS6_paired.py` |
 | Table 1 (benchmark sections) | `scripts/benchmark/own_only.py` (`bench_cases.csv`) |
-| Table S1 (semi-synthetic benchmark) | `scripts/tables/sim_table.py` |
+| Table S1 (semi-synthetic benchmark; per-channel localization) | `scripts/tables/sim_table.py`, `scripts/evaluation/sim_loc.py`, `scripts/tables/sim_loc_table.py` |
 | Table S2 (readouts, stain-cocktail weights) | `scripts/data/fit_cocktail.py` |
 | Tables S3, S4 (per section: cross-dataset / same-section setting) | `scripts/tables/bench_tables.py cross` / `within` (`table_cross.tex`, `table_within.tex`) |
 | Table S5 (Pearson, AUROC, single networks) | `scripts/evaluation/robustness.py`, `scripts/tables/robust_tex.py` |
@@ -358,6 +372,7 @@ python scripts/tables/case_table.py results/case_crlm/final/summary.csv results/
 | Table S8 (spot-level evaluation) | `scripts/baselines/grid_eval.py`, `scripts/evaluation/grid_summary.py` |
 | Table S9 (case study, per section) | `scripts/evaluation/crlm_case.py`, `scripts/tables/case_table.py` |
 | Table S11 (data sources) | `data/README.md` |
+| Table S13 (per protein and method on kidney and CRLM: the values of Fig. 2b) | `scripts/figdata/per_protein_rows.py`, `figures/perprotein.py`, `figures/table_per_protein.py` (run by `figures/make_all.sh`) |
 
 ## Pretrained models
 All networks of the paper are trained with the commands above.

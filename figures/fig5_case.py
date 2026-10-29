@@ -1,10 +1,12 @@
-"""Figure 5: case study. Colorectal liver metastases with same-section IMC; every model trained on
+"""Figure 5 (v5, RECOMB 10-pt floor): case study. Colorectal liver metastases with same-section IMC; every model trained on
 kidney only. The same rule is applied to measured IMC and to each RNA-based source (per-section Otsu thresholds on PanCK, CD45,
 CD68; tumour region = cells with at least half tumour cells within 25 um; signed distance of each cell to the region boundary).
 (a) tumour 2, the shallowest tumour section: tumour region and CD45+ cells called from each source; below each map the Dice of
 the tumour region and the Pearson r of the CD45+ profile (b) with IMC;
 (b, c) fraction of CD45+ and CD68+ cells against the distance to the tumour boundary in tumour 2 (bands: 95% intervals,
 spatial block bootstrap of 200-um tiles, for IMC and TxCellNet); one line key for b-d under the panel titles;
+every source has its own colour, lightness and line style, so the five lines also separate in greyscale and under colour-vision
+deficiency (IMC black solid, TxCellNet vermillion solid, NicheTrans blue dashed, DGAT sky-blue dash-dot, cognate mRNA grey dotted);
 (d) agreement with IMC in each of the five tumour sections (dots: sections; tick: mean; black outline: tumour 2);
 Dice = tumour-region Dice, CD45 r / CD68 r = Pearson r of the profiles in b / c with the IMC profile (as in a).
 Every printed glyph >= 10 pt (figstyle.print_min10); panel letters 11 pt.
@@ -16,7 +18,7 @@ from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 import figstyle
 figstyle.print_min10()
-from figstyle import W, label, axes_in, save, INK, COL, HERO
+from figstyle import W, label, axes_in, save, INK, HERO
 
 CD, OUT = sys.argv[1:3]
 S = pd.read_csv(f'{CD}/summary.csv'); P = pd.read_csv(f'{CD}/profiles.csv')
@@ -24,7 +26,13 @@ SHOW = 'crlm_tumor2'
 SECTIONS = ['crlm_tumor1', 'crlm_tumor2', 'crlm_tumor3_A1', 'crlm_tumor3_A2', 'crlm_tumor3_A3']
 SRC = [('IMC', 'IMC (measured)'), ('TxCellNet', 'TxCellNet'), ('DGAT', 'DGAT'), ('NicheTrans', 'NicheTrans'),
        ('Cognate mRNA', 'Cognate mRNA')]
-SCOL = {'IMC': INK, 'TxCellNet': HERO, 'DGAT': COL['dgat'], 'NicheTrans': COL['nichetrans'], 'Cognate mRNA': '#ABABAB'}
+# five lines in b, c: the two published methods are pulled apart in the blue family (a darker blue and the Okabe-Ito sky blue,
+# NicheTrans darker as in the other figures) and every source gets its own dash, so no pair relies on colour alone
+SCOL = {'IMC': INK, 'TxCellNet': HERO, 'DGAT': '#56B4E9', 'NicheTrans': '#2159A0', 'Cognate mRNA': '#7F7F7F'}
+SLS = {'IMC': '-', 'TxCellNet': '-', 'DGAT': (0, (4.5, 1.5, 1.0, 1.5)), 'NicheTrans': (0, (3.2, 1.6)),
+       'Cognate mRNA': (0, (1.0, 1.4))}
+SLW = {'IMC': 1.6, 'TxCellNet': 1.6, 'DGAT': 1.3, 'NicheTrans': 1.3, 'Cognate mRNA': 1.3}
+line_style = lambda s: dict(color=SCOL[s], lw=SLW[s], ls=SLS[s], solid_capstyle='butt', dash_capstyle='butt')
 TUMOUR, IMMUNE, OTHER = '#9ADBF0', '#C2188F', '#DADADA'   # tints of the cyan / magenta of the image figures
 FS = 10                                                    # every text in this figure (panel letters: figstyle.PANEL_FS = 11)
 num = lambda v, f='.2f': format(v, f).replace('-', '−')   # typographic minus
@@ -55,11 +63,13 @@ def title(x, y, s):
 
 
 # ---- a: maps of tumour 2 ----
-label(fig, 0.0, 0.02, 'a'); title(0.20, 0.02, 'Tumour 2 (10 molecules per cell)')
+A_TITLE = 'Tumor 2 (10 vocabulary molecules per cell)'   # median per cell over the model vocabulary
+label(fig, 0.0, 0.02, 'a'); title(0.20, 0.02, A_TITLE)
 SQ, KP, KS = 0.10, 0.05, 0.17   # colour key: square, square-to-text, entry spacing (in)
-items = [(TUMOUR, 'Tumour region'), (IMMUNE, 'CD45+ cell'), (OTHER, 'Other cell')]
+items = [(TUMOUR, 'Tumor region'), (IMMUNE, 'CD45+ cell'), (OTHER, 'Other cell')]
 kx = 6.45 - sum(SQ + KP + width(s) for _, s in items) - KS * (len(items) - 1)   # right-aligned with the last map
 ky = 0.02 + 0.085
+assert 0.20 + width(A_TITLE) < kx - 0.15, 'panel-a title runs into the colour key'
 for c, s in items:
     fig.patches.append(Rectangle((kx / W, yy(ky + SQ / 2)), SQ / W, SQ / H, transform=fig.transFigure, fc=c, ec='none',
                                  figure=fig))
@@ -96,12 +106,13 @@ Y2, PH = 1.82, 0.90
 BX, BW, CX = 0.50, 1.24, 2.26                       # b, c: axes left edges and width (in)
 label(fig, 0.0, Y2, 'b'); title(0.20, Y2, 'Immune cells')
 label(fig, 1.80, Y2, 'c'); title(2.00, Y2, 'Macrophages')
-kx, ky = BX, Y2 + 0.31                               # one line key for b-d (d: same colours)
+KH, KP, KS = 0.30, 0.06, 0.16                       # key: line handle (long enough for one dash-dot period), gap, spacing
+kx, ky = 0.20, Y2 + 0.31                             # one line key for b-d (d: same colours), from the title column
 for s, name in SRC:
-    st = dict(color=SCOL[s], lw=1.4 if s in ('IMC', 'TxCellNet') else 1.0, ls=':' if s == 'Cognate mRNA' else '-')
-    fig.add_artist(Line2D([kx / W, (kx + 0.20) / W], [yy(ky)] * 2, **st))
-    t = txt(kx + 0.25, ky, name, va='center')
-    kx += 0.25 + t.get_window_extent(R).width / fig.dpi + 0.17
+    fig.add_artist(Line2D([kx / W, (kx + KH) / W], [yy(ky)] * 2, **line_style(s)))
+    t = txt(kx + KH + KP, ky, name, va='center')
+    kx += KH + KP + t.get_window_extent(R).width / fig.dpi + KS
+assert kx - KS <= 6.45, f'line key too wide: ends at {kx - KS:.2f} in'
 YP = ky + 0.20
 Q = P[P.case == SHOW]; NMIN, XMIN = 100, -92   # bins plotted: at least 100 cells, inside the x range
 prof_axes = {}
@@ -115,12 +126,12 @@ for pid, (col, ylab, ylim, yt, x) in {'b': ('immune', 'CD45+ fraction', (0, 1.0)
         if s in ('IMC', 'TxCellNet'):
             ax.fill_between(d, q[f'{col}_lo'][ok], q[f'{col}_hi'][ok], color=SCOL[s], alpha=0.18 if s == 'IMC' else 0.22, lw=0,
                             zorder=2)
-            ax.plot(d, v, color=SCOL[s], lw=1.4, zorder=5 if s == 'IMC' else 6)
+            ax.plot(d, v, **line_style(s), zorder=5 if s == 'IMC' else 6)
         else:
-            ax.plot(d, v, color=SCOL[s], lw=1.0, ls=':' if s == 'Cognate mRNA' else '-', zorder=3)
+            ax.plot(d, v, **line_style(s), zorder=3)
     ax.axvline(0, color='#9A9A9A', lw=0.5, zorder=1)
     ax.set_xlim(XMIN, 150); ax.set_xticks([-80, 0, 80]); ax.set_ylim(*ylim); ax.set_yticks(yt); ax.set_ylabel(ylab)
-xl = prof_axes['b'].set_xlabel('Distance to tumour boundary (µm)')   # one x label shared by b and c, centred under both
+xl = prof_axes['b'].set_xlabel('Distance to tumor boundary (µm)')   # one x label shared by b and c, centred under both
 xl.set_x((CX + BW - BX) / 2 / BW)
 
 # ---- d: agreement with IMC, five tumour sections ----

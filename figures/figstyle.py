@@ -1,15 +1,15 @@
-"""Shared style for the TxCellNet data figures.
+"""Shared style for the TxCellNet data figures (v4: v3 audited with the nature-figure 2.8.0 QA contract).
 
-Final size: drawn at the text width (6.5 in) and included at 100 %, so the font sizes below are the printed sizes
-(sans-serif 5-7 pt, bold lowercase 8 pt panel letters, no outlined text, TrueType-embedded fonts; every rendered glyph
->= 5 pt, so no mathtext superscripts). print_min10() switches to a 10-pt minimum, used by every figure of the paper.
+Final size: drawn at the RECOMB text width (6.5 in) and included at 100 %, so the font sizes below are the printed sizes
+(Nature guide: sans-serif 5-7 pt, bold lowercase 8 pt panel letters, no outlined text, TrueType-embedded fonts; every
+rendered glyph >= 5 pt, so no mathtext superscripts).
 Colour: one hero colour for TxCellNet (vermillion), one blue family for the four published methods (dark = strongest),
 one grey family for the baselines (Okabe-Ito based, colour-blind safe; red/green pairs avoided); marker shapes double-encode.
 Exports: SVG with live text (svg.fonttype none) and PDF with TrueType (Type 42) fonts are the editable masters; PNG is a
 preview only. Every figure also writes the plotted numbers as CSV (source data).
-Multi-line labels use one leading LS (lines must not overlap in the PDF). Optional alignment check: when a module
-audit_panel_alignment (not included) is importable, save() measures the final panel rectangles and stops on a misalignment
-above 1.5 pt; otherwise the check is skipped.
+QA (v4): multi-line labels use one leading LS (lines must not overlap in the PDF); before export, save() measures the final
+panel rectangles and blocks on misalignment (audit_panel_alignment.py of the nature-figure skill, 1.5 pt tolerance) when
+that module is importable; the alignment report is written next to the figure (QA only).
 """
 import os
 import matplotlib as mpl
@@ -24,12 +24,13 @@ mpl.rcParams.update({
     'axes.spines.top': False, 'axes.spines.right': False, 'legend.frameon': False, 'legend.handletextpad': 0.4,
     'lines.linewidth': 1.0, 'lines.markersize': 3.5, 'figure.dpi': 150, 'savefig.dpi': 600,
 })
-W = 6.5  # figure width (in) = text width
+W = 6.5  # figure width (in) = RECOMB text width
 PANEL_FS, KEY_FS, SMALL_FS = 8, 6.5, 5.2  # panel letters, inline colour keys, scale bars / value strips
 
 
 def print_min10():
-    """10-pt minimum: every printed glyph >= 10 pt, panel letters 11 pt. Call right after importing figstyle."""
+    """RECOMB 2027 floor: every printed glyph >= 10 pt (main-text figures 2-5). Call right after importing figstyle;
+    the supplementary figures keep the 5-7 pt style above."""
     global PANEL_FS, KEY_FS, SMALL_FS
     mpl.rcParams.update({'font.size': 10, 'axes.titlesize': 10, 'axes.labelsize': 10, 'xtick.labelsize': 10,
                          'ytick.labelsize': 10, 'legend.fontsize': 10, 'lines.markersize': 5, 'xtick.major.size': 3,
@@ -43,7 +44,7 @@ HERO_LIGHT = '#F2A578'    # TxCellNet variants (stage 2, clean-only, ...)
 METHODS = [('txcellnet', 'TxCellNet', HERO, 'D'),
            ('nichetrans', 'NicheTrans', '#1B3A6B', 'o'), ('dgat', 'DGAT', '#3C6BAA', 's'),
            ('spamosaic', 'SpaMosaic', '#79A2D2', '^'), ('totalvi', 'totalVI', '#AFC6E6', 'v'),
-           ('mlp', 'MLP', '#4D4D4D', 'o'), ('ridge_niche', 'Ridge + neighbourhood', '#4D4D4D', 'o'), ('ridge', 'Ridge', '#7A7A7A', 's'), ('knn', 'Reference mapping', '#A3A3A3', '^'),
+           ('mlp', 'MLP', '#4D4D4D', 'o'), ('ridge_niche', 'Ridge + neighborhood', '#4D4D4D', 'o'), ('ridge', 'Ridge', '#7A7A7A', 's'), ('knn', 'Reference mapping', '#A3A3A3', '^'),
            ('celltype', 'Cell-type lookup', '#C6C6C6', 'v'), ('own_mRNA', 'Cognate mRNA', '#DEDEDE', 'o')]
 COL = {k: c for k, _, c, _ in METHODS}; LAB = {k: l for k, l, _, _ in METHODS}; MK = {k: m for k, _, _, m in METHODS}
 PUBLISHED = ['nichetrans', 'dgat', 'spamosaic', 'totalvi']; BASELINES = ['mlp', 'ridge_niche', 'ridge', 'knn', 'celltype', 'own_mRNA']
@@ -72,7 +73,7 @@ def save(fig, out, data=None, panels=None, row_groups=None, column_groups=None, 
         try:
             from audit_panel_alignment import require_matplotlib_panel_alignment
         except ImportError:
-            print('alignment audit skipped: audit_panel_alignment not importable')
+            print('alignment audit skipped: audit_panel_alignment.py (nature-figure skill) not importable')
         else:
             qa = qa_dir or os.path.join(os.path.dirname(out) or '.', 'qa'); os.makedirs(qa, exist_ok=True)
             base = os.path.join(qa, os.path.basename(out))

@@ -1,4 +1,5 @@
-"""Supplementary Fig. S1: what each component contributes, and what stage 2 adds.
+"""Supplementary figure S1 (v5.2, RECOMB 10 pt floor): what each component contributes, and what stage 2 adds. Same numbers as
+TxCellNet_code/scripts/figS2_ablation.py and as the 5-7 pt version.
 (a) ablations on the 32 external Xenium sections: change of the median Spearman per section relative to one network trained
     with half of its patches randomized (mean of its three seeds); dots: sections, bar: mean, diamond: kidney held-out stripes
 (b) stage 2 vs stage 1 on the kidney held-out stripes: median over proteins and both sections of image statistics relative to
@@ -22,7 +23,7 @@ T = pd.read_csv(TCSV, index_col=0)
 KID = ['kidney_rcc', 'kidney_ccrcc']
 SEEDS = ['pm_full_s1', 'pm_full_s2', 'pm_full_s3']  # one mixed-regime network, three seeds: the reference is their mean
 T['ref'] = T[SEEDS].mean(1)
-ROWS = [('Same network, single seeds', SEEDS, 'each'), ('Retrained per panel (2 seeds)', ['pm_s1', 'pm_s2'], 'avgpair'),
+ROWS = [('Same network, single seeds', SEEDS, 'each'),
         ('Clean regime only (3 seeds)', ['fin_clean_s1', 'fin_clean_s2', 'fin_clean_s3'], 'avg'),
         ('Randomized regime only (3 seeds)', ['fin_rand_s1', 'fin_rand_s2', 'fin_rand_s3'], 'avg'),
         ('No DAPI', ['abl_nodapi_full'], 'avg'), ('No niche transformer', ['abl_noniche_full'], 'avg'),
@@ -44,7 +45,7 @@ def signed(v):  # typographic minus for the printed values (the source data keep
     return f'{v:+.3f}'.replace('-', '−')
 
 
-H = 6.05
+H = 6.05 - 0.235                        # one row height less since the per-panel retraining row was dropped
 fig = plt.figure(figsize=(W, H))
 rend = fig.canvas.get_renderer()
 
